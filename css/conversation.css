@@ -1,170 +1,150 @@
-/* Hide elements with hidden class */
+/* 隐藏拥有hidden类的元素 */
 .hidden {
     display: none !important;
 }
 
-/* Floating chat styling */
-.floating-chat {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: auto; /* Adjust width to content */
-    height: auto; /* Adjust height to content */
-    background-color: transparent;
-    border-radius: 0;
-    box-shadow: none;
+/* 聊天UI基本样式 */
+.ai-chat {
     display: flex;
     flex-direction: column;
-    z-index: 1000;
-    overflow: visible;
-    transition: opacity 0.3s ease;
-    opacity: 1;
-    border: none;
-}
-
-.floating-chat:hover {
-    opacity: 1;
-}
-
-.floating-chat-header {
-    display: none !important; /* Hide the header */
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-md);
-    background-color: transparent; /* Make header completely transparent when not hovered */
-    color: var(--color-text-on-primary);
-    transition: background-color 0.3s ease;
-}
-
-.floating-chat:hover .floating-chat-header {
-    background-color: rgba(var(--color-primary-rgb), 0.3); /* Make floating-chat-header background semi-transparent only on hover */
-}
-
-.floating-chat-controls {
-    display: none !important;
-    gap: var(--space-xs);
-}
-
-.floating-chat-content {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.conversation-section {
-    display: none !important; /* Hide the conversation section */
-    flex: 1;
-    flex-direction: column;
-    height: calc(100vh - 200px);
-    max-height: calc(100vh - 200px);
-    overflow: hidden;
-}
-
-.conversation-container {
-    display: none !important;
-    flex: 1;
-    flex-direction: column;
-    flex: 1;
-    max-height: 100%;
-    overflow: hidden;
-}
-
-.chat-history {
-    display: none !important;
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--space-md);
-    border: none; /* Remove border from chat history */
+    height: 100%;
+    background-color: var(--color-surface);
     border-radius: var(--radius-md);
-    background-color: transparent !important;
-    margin-bottom: var(--space-md);
-    max-height: calc(100% - 90px);
 }
 
-.message {
-    margin-bottom: var(--space-md);
-    padding: var(--space-md);
-    border-radius: 5px;
-    max-width: 80%;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    transition: none;
-    opacity: 1;
-    border: 2px solid black;
-    box-shadow: 2px 2px 0px black;
-    font-family: monospace;
-    font-size: 14px;
+/* 确保子元素不继承透明背景 */
+.ai-chat * {
+    background-color: inherit;
 }
 
-.message:hover {
-    opacity: 1;
-}
-
-.user-message {
-    background-color: #c6e2ff;
-    margin-left: auto;
-    text-align: right;
-    border-color: #000080;
-}
-
-.user-message:hover {
-    background-color: #87cefa;
-}
-
-.ai-message {
-    background-color: #90ee90;
-    margin-right: auto;
-    border-color: #006400;
-}
-
-.ai-message:hover {
-    background-color: #3cb371;
-}
-
-.input-area {
-    display: flex;
-    gap: var(--space-sm);
-    transition: none;
-    opacity: 1; /* Adjust input area opacity */
-    padding: var(--space-sm);
-    background-color: #f0f0f0;
-    border: 2px solid black;
-    border-radius: 5px;
-    box-shadow: 2px 2px 0px black;
-}
-
-.floating-chat:hover .input-area {
-    opacity: 1;
-}
-
-#userInput {
+/* 消息区域样式 */
+.chat-messages {
     flex: 1;
-    padding: 2px;
-    border: none;
-    border-radius: 0;
-    resize: none;
-    height: 40px;
-    background-color: transparent;
-    transition: none;
-    font-family: monospace;
-    font-size: 14px;
+    padding: var(--space-md);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    border-bottom: 1px solid var(--color-primary-light);
+    margin-bottom: var(--space-sm);
+    max-height: calc(100% - 70px);
 }
 
-#userInput:focus {
-    background-color: rgba(255, 255, 255, 0.9);
-    outline: none;
+/* 消息气泡样式 */
+.chat-message {
+    max-width: 85%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    position: relative;
+    line-height: 1.4;
+    background-color: transparent !important; /* 确保没有默认背景色 */
 }
 
-#sendButton {
-    display: none !important; /* Hide the send button */
+.chat-message.user {
     align-self: flex-end;
-    background-color: rgba(var(--color-primary-rgb), 0.8);
+    background-color: var(--color-primary) !important;
     color: var(--color-text-on-primary);
-    transition: background-color 0.3s ease;
-    border: none;
+    border-bottom-right-radius: 4px;
 }
 
-#sendButton:hover {
+.chat-message.assistant {
+    align-self: flex-start;
+    background-color: var(--color-surface-variant) !important;
+    color: var(--color-surface-variant);
+    border: 1px solid var(--color-primary-light);
+    border-bottom-left-radius: 4px;
+}
+
+/* 消息文本样式 */
+.chat-message p {
+    margin: 0;
+    padding: 0;
+    background-color: inherit !important; /* 确保文本背景与父元素一致 */
+}
+
+/* 输入区域样式 */
+.chat-input-form {
+    display: flex;
+    padding: var(--space-sm);
+    background-color: var(--color-surface);
+    gap: var(--space-sm);
+}
+
+.chat-input {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--color-primary-light);
+    border-radius: var(--radius-md);
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+    font-family: inherit;
+    font-size: inherit;
+    background-color: white;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+/* 发送按钮样式 */
+#chatSendBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
     background-color: var(--color-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.2s;
+}
+
+#chatSendBtn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* 消息操作按钮 */
+.message-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background-color: transparent !important;
+}
+
+.chat-message:hover .message-actions {
+    opacity: 1;
+}
+
+.save-message {
+    background: transparent !important;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.save-message:hover {
+    opacity: 1;
+}
+
+/* 侧边栏内的聊天界面 */
+.sidebar .ai-chat {
+    height: 100%;
+    border-radius: 0;
+    background-color: var(--color-surface);
+}
+
+/* 消息反馈样式 */
+.message-feedback {
+    background-color: var(--color-success) !important;
 }

@@ -1,6 +1,6 @@
 // Conversation management
 const ConversationManager = {
-    chatPosition: 'hidden', // 'hidden', 'floating', 'left', 'right'
+    chatPosition: 'hidden', // 'hidden', 'left', 'right'
     
     init() {
         console.log("ConversationManager init() called");
@@ -22,13 +22,11 @@ const ConversationManager = {
             this.closeLeftSidebarBtn = document.getElementById('closeLeftSidebarBtn');
             this.closeRightSidebarBtn = document.getElementById('closeRightSidebarBtn');
             
+            // 移除浮动聊天元素引用，我们不再使用它们
             this.floatingChat = document.getElementById('floatingChat');
-            console.log("floatingChat found:", this.floatingChat);
-            
-            this.floatingChatContent = document.getElementById('floatingChatContent');
-            this.dockChatLeftBtn = document.getElementById('dockChatLeftBtn');
-            this.dockChatRightBtn = document.getElementById('dockChatRightBtn');
-            this.closeFloatingChatBtn = document.getElementById('closeFloatingChatBtn');
+            if (this.floatingChat) {
+                this.floatingChat.classList.add('hidden');
+            }
             
             // Load previous conversation from storage
             this.loadConversation();
@@ -36,9 +34,9 @@ const ConversationManager = {
             // Set up event listeners for chat visibility and positioning
             if (this.aiChatBtn) {
                 console.log("Adding click event listener to aiChatBtn");
-                this.aiChatBtn.addEventListener('click', (e) => {
+                this.aiChatBtn.addEventListener('click', () => {
                     console.log("AI Chat Button clicked");
-                    this.toggleFloatingChat();
+                    this.toggleChatSidebar();
                 });
             } else {
                 console.error("aiChatBtn element not found");
@@ -48,11 +46,8 @@ const ConversationManager = {
             this.chatRightBtn?.addEventListener('click', () => this.setChatPosition('right'));
             this.closeLeftSidebarBtn?.addEventListener('click', this.handleCloseSidebar.bind(this));
             this.closeRightSidebarBtn?.addEventListener('click', this.handleCloseSidebar.bind(this));
-            this.dockChatLeftBtn?.addEventListener('click', () => this.setChatPosition('left'));
-            this.dockChatRightBtn?.addEventListener('click', () => this.setChatPosition('right'));
-            this.closeFloatingChatBtn?.addEventListener('click', () => this.setChatPosition('hidden'));
             
-            // Create the chat UI in all possible containers
+            // Create the chat UI in sidebar containers
             this.renderChatUI();
             
             console.log("ConversationManager initialization completed");
@@ -84,10 +79,9 @@ const ConversationManager = {
         // Load saved conversation from storage
         const savedMessages = StorageManager.getConversation();
         
-        // Create chat UI in all possible containers
+        // Create chat UI in sidebar containers
         this.createChatUIInContainer(this.leftSidebarContent);
         this.createChatUIInContainer(this.rightSidebarContent);
-        this.createChatUIInContainer(this.floatingChat);
         
         // Set up event listeners for the message form in all locations
         document.querySelectorAll('#chatInputForm').forEach(form => {
@@ -125,12 +119,17 @@ const ConversationManager = {
     createChatUIInContainer(container) {
         if (container) {
             container.innerHTML = `
-                <div class="ai-chat" style="background-color: transparent;">
-                    <div class="chat-messages" id="chatMessages" style="background-color: transparent;">
+                <div class="ai-chat">
+                    <div class="chat-messages" id="chatMessages">
                         <!-- Messages will be inserted here -->
                     </div>
                     <form class="chat-input-form" id="chatInputForm">
                         <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="2"></textarea>
+                        <button type="submit" class="button-primary" id="chatSendBtn">
+                            <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" stroke="currentColor" stroke-width="0.5"></path>
+                            </svg>
+                        </button>
                     </form>
                 </div>
             `;
@@ -190,25 +189,50 @@ const ConversationManager = {
     },
     
     renderMessages(messages) {
+        // 确保我们有消息要显示
+        if (!messages || messages.length === 0) {
+            return;
+        }
+        
+        // 找到最后一轮对话（最多两条消息）
         let lastUserMessage = null;
-        let lastAiMessage = null;
-
+        let correspondingAiMessage = null;
+        
+        // 从最近的消息开始检查
         for (let i = messages.length - 1; i >= 0; i--) {
-            if (messages[i].role === 'user' && !lastUserMessage) {
-                lastUserMessage = messages[i];
-            } else if (messages[i].role === 'assistant' && !lastAiMessage) {
-                lastAiMessage = messages[i];
+            const msg = messages[i];
+            
+            // 如果是AI消息且我们还没找到对应的AI回复
+            if (msg.role === 'assistant' && !correspondingAiMessage) {
+                correspondingAiMessage = msg;
+                // 继续循环寻找这条AI消息之前的最近用户消息
+                continue;
             }
-
-            if (lastUserMessage && lastAiMessage) {
-                break;
+            
+            // 如果是用户消息且我们已经找到了AI回复，这应该是对应的用户消息
+            if (msg.role === 'user' && correspondingAiMessage && !lastUserMessage) {
+                lastUserMessage = msg;
+                break; // 找到了完整的一轮对话，可以跳出循环
+            }
+            
+            // 如果我们还没找到任何消息，且这是一条用户消息，保存它
+            // 这处理的是用户发送消息但AI还没回复的情况
+            if (msg.role === 'user' && !correspondingAiMessage && !lastUserMessage) {
+                lastUserMessage = msg;
+                break; // 只有用户消息，没有AI回复，也跳出循环
             }
         }
-
+        
+        // 按照时间顺序准备消息（先用户消息，再AI回复）
         const messagesToDisplay = [];
-        if (lastUserMessage) messagesToDisplay.push(lastUserMessage);
-        if (lastAiMessage) messagesToDisplay.push(lastAiMessage);
-
+        if (lastUserMessage) {
+            messagesToDisplay.push(lastUserMessage);
+        }
+        if (correspondingAiMessage) {
+            messagesToDisplay.push(correspondingAiMessage);
+        }
+        
+        // 生成HTML
         const messagesHTML = messagesToDisplay.map(msg => {
             const isUser = msg.role === 'user';
             return `
@@ -216,7 +240,7 @@ const ConversationManager = {
                     <p>${msg.content}</p>
                     ${!isUser ? 
                       `<div class="message-actions">
-                          <button class="note-control-button save-message" title="Save as note">
+                          <button class="save-message" title="Save as note">
                               <svg class="icon" viewBox="0 0 24 24" width="12" height="12">
                                   <path fill="currentColor" d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" stroke="currentColor" stroke-width="0.5"></path>
                               </svg>
@@ -227,13 +251,13 @@ const ConversationManager = {
             `;
         }).join('');
         
-        // Update all chat message containers
+        // 更新所有聊天消息容器
         document.querySelectorAll('#chatMessages').forEach(container => {
             container.innerHTML = messagesHTML;
             this.scrollToBottom(container);
         });
         
-        // Add event listeners to save buttons
+        // 添加保存按钮的事件监听器
         this.addSaveButtonToMessages();
     },
     
@@ -305,66 +329,36 @@ const ConversationManager = {
         }
     },
     
-    // Chat UI positioning methods
-    toggleFloatingChat() {
-        console.log("toggleFloatingChat called, current chatPosition:", this.chatPosition);
+    // 切换聊天侧边栏的显示
+    toggleChatSidebar() {
+        console.log("toggleChatSidebar called, current chatPosition:", this.chatPosition);
         
-        if (this.chatPosition === 'hidden' || this.chatPosition === 'left' || this.chatPosition === 'right') {
-            console.log("Setting chat position to floating");
-            this.setChatPosition('floating');
+        // 默认使用右侧边栏
+        if (this.chatPosition === 'hidden') {
+            this.setChatPosition('right');
         } else {
-            console.log("Setting chat position to hidden");
             this.setChatPosition('hidden');
         }
     },
     
     setChatPosition(position) {
         console.log("setChatPosition called with position:", position);
-        console.log("floatingChat element:", this.floatingChat);
         
         try {
             this.chatPosition = position;
             
-            if (!this.floatingChat) {
-                console.error("floatingChat element is not defined");
-                return;
-            }
-            
-            // First, let's force the floatingChat to be visible to check if it exists in DOM
-            if (position === 'floating') {
-                console.log("Attempting to show floating chat");
-                
-                // Force style display instead of using class
-                this.floatingChat.style.display = 'block';
-                
-                // Also try removing any hidden class
-                this.floatingChat.classList.remove('hidden');
-                
-                console.log("floatingChat display style:", window.getComputedStyle(this.floatingChat).display);
-                console.log("floatingChat visibility style:", window.getComputedStyle(this.floatingChat).visibility);
-            } else {
-                // Hide all chat containers first
-                this.floatingChat.style.display = 'none';
-                this.floatingChat.classList.add('hidden');
-            }
-            
-            // If chat is in left sidebar, keep the sidebar open but change content
+            // 处理左侧边栏
             if (this.leftSidebarTitle && this.leftSidebarTitle.textContent === 'AI Chat') {
                 this.leftSidebar?.classList.add('hidden');
             }
             
-            // If chat is in right sidebar, hide it
+            // 处理右侧边栏
             if (this.rightSidebarTitle && this.rightSidebarTitle.textContent === 'AI Chat') {
                 this.rightSidebar?.classList.add('hidden');
             }
             
-            // Show chat in the appropriate container based on position
+            // 根据位置设置显示
             switch (position) {
-                case 'floating':
-                    this.floatingChat.style.display = 'block';
-                    this.floatingChat.classList.remove('hidden');
-                    break;
-                    
                 case 'left':
                     if (this.leftSidebarTitle) this.leftSidebarTitle.textContent = 'AI Chat';
                     this.leftSidebar?.classList.remove('hidden');
@@ -376,10 +370,7 @@ const ConversationManager = {
                     break;
             }
             
-            console.log("After position change, floatingChat display:", 
-                        this.floatingChat ? window.getComputedStyle(this.floatingChat).display : "element not found");
-            
-            // Load the latest messages into the visible container
+            // 加载最新消息
             this.renderMessages(StorageManager.getConversation() || []);
         } catch (error) {
             console.error("Error in setChatPosition:", error);
