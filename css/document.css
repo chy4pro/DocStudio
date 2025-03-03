@@ -1,0 +1,50 @@
+.document-section {
+    display: none;
+    height: calc(100vh - 200px);
+}
+
+.document-section.active {
+    display: block;
+}
+
+.document-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.preview-controls {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.preview-container {
+    height: 600px;
+    overflow-y: auto;
+    padding: var(--space-lg);
+    border: 1px solid var(--color-primary-light);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+}
+
+.preview-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+    background-color: var(--color-surface);
+    min-height: 1100px; /* A4 size approximation */
+}
+
+#editDocumentBtn {
+    background-color: var(--color-secondary);
+}
+
+#exportPdfBtn {
+    background-color: var(--color-warning);
+}
+
+#exportDocBtn {
+    background-color: var(--color-primary);
+}

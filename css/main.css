@@ -1,0 +1,63 @@
+/* Base styles are now in modern.css */
+
+.split-view {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+    height: calc(100vh - 200px);
+    min-height: 600px;
+}
+
+section {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-lg);
+    transition: all var(--transition-normal);
+}
+
+section:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+button {
+    background-color: var(--color-primary);
+    color: var(--color-text-on-primary);
+}
+
+button:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.context-menu {
+    display: none;
+    position: absolute;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-primary-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: var(--z-index-dropdown);
+    overflow: hidden;
+    animation: fadeIn var(--transition-fast);
+}
+
+.context-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--space-sm) var(--space-md);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: none;
+    cursor: pointer;
+}
+
+.context-menu button:hover {
+    background-color: var(--color-surface-variant);
+    color: var(--color-primary);
+}
+
+.settings-button {
+    background-color: var(--color-secondary);
+}
