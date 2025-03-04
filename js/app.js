@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     WorkspaceManager.init();
     DocumentManager.init();
     
+    // Set default positions: notes on left, AI chat on right
+    NotesManager.setNotesPosition('left');
+    ConversationManager.setChatPosition('right');
+    
     // Initialize context menu and settings modal
     initContextMenu();
     initSettingsModal();

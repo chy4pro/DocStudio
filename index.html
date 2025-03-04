@@ -33,16 +33,6 @@
                     </svg>
                     AI Chat
                 </button>
-                <button id="chatLeftBtn" class="button-icon" title="Dock AI Chat to left">
-                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 3v18M6 3v18M6 12h12"></path>
-                    </svg>
-                </button>
-                <button id="chatRightBtn" class="button-icon" title="Dock AI Chat to right">
-                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                        <path fill="none" stroke="currentColor" stroke-width="2" d="M6 3v18M18 3v18M6 12h12"></path>
-                    </svg>
-                </button>
                 <button id="settingsBtn" class="button-outline">
                     <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
                         <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" stroke="currentColor" stroke-width="0.5"></path>
@@ -53,23 +43,57 @@
         </header>
         
         <main class="app-main">
-            <!-- Left sidebar -->
-            <aside id="leftSidebar" class="sidebar hidden">
-                <div class="sidebar-header">
-                    <h2 id="leftSidebarTitle">Notes Library</h2>
-                    <button id="closeLeftSidebarBtn" class="button-icon">
-                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div id="leftSidebarContent" class="sidebar-content">
-                    <!-- Content will be dynamically inserted here -->
-                </div>
-            </aside>
+            <!-- 左侧区域 -->
+            <div id="leftSidebarArea" class="sidebar-area">
+                <div class="sidebar-container">
+                    <!-- 左侧笔记库 -->
+                    <aside id="leftNotesLibrary" class="sidebar hidden">
+                        <div class="sidebar-header">
+                            <h2>Notes Library</h2>
+                            <div class="sidebar-controls">
+                                <button id="switchNotesToRightBtn" class="button-icon" title="移至右侧">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M5 12h14M13 6l6 6-6 6"></path>
+                                    </svg>
+                                </button>
+                                <button id="closeNotesLibraryBtn" class="button-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="leftNotesLibraryContent" class="sidebar-content">
+                            <!-- 笔记库内容将在这里动态插入 -->
+                        </div>
+                    </aside>
 
-            <!-- Main workspace area -->
-            <section class="workspace-container">
+                    <!-- 左侧AI聊天 -->
+                    <aside id="leftAIChat" class="sidebar hidden">
+                        <div class="sidebar-header">
+                            <h2>AI Chat</h2>
+                            <div class="sidebar-controls">
+                                <button id="switchChatToRightBtn" class="button-icon" title="移至右侧">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M5 12h14M13 6l6 6-6 6"></path>
+                                    </svg>
+                                </button>
+                                <button id="closeLeftChatBtn" class="button-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="leftAIChatContent" class="sidebar-content">
+                            <!-- AI聊天内容将在这里动态插入 -->
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <!-- 主工作区 -->
+            <section id="workspaceSection" class="workspace-container">
                 <div class="workspace-header">
                     <h2>Workspace</h2>
                     <div class="workspace-tabs" id="workspaceTabs">
@@ -78,10 +102,10 @@
                     </div>
                 </div>
                 <div id="workspaceArea" class="workspace-area">
-                    <!-- Text editor -->
+                    <!-- 文本编辑器 -->
                     <textarea id="editor" class="workspace-editor"></textarea>
                     
-                    <!-- Notes area (for positioned notes) -->
+                    <!-- 笔记区域 (用于定位笔记) -->
                     <div id="notesArea" class="notes-area"></div>
                 </div>
                 <div class="workspace-controls">
@@ -97,23 +121,57 @@
                 </div>
             </section>
 
-            <!-- Right sidebar -->
-            <aside id="rightSidebar" class="sidebar hidden">
-                <div class="sidebar-header">
-                    <h2 id="rightSidebarTitle">AI Chat</h2>
-                    <button id="closeRightSidebarBtn" class="button-icon">
-                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
-                        </svg>
-                    </button>
+            <!-- 右侧区域 -->
+            <div id="rightSidebarArea" class="sidebar-area">
+                <div class="sidebar-container">
+                    <!-- 右侧笔记库 -->
+                    <aside id="rightNotesLibrary" class="sidebar hidden">
+                        <div class="sidebar-header">
+                            <h2>Notes Library</h2>
+                            <div class="sidebar-controls">
+                                <button id="switchNotesToLeftBtn" class="button-icon" title="移至左侧">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M19 12H5M11 6l-6 6 6 6"></path>
+                                    </svg>
+                                </button>
+                                <button id="closeRightNotesLibraryBtn" class="button-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="rightNotesLibraryContent" class="sidebar-content">
+                            <!-- 笔记库内容将在这里动态插入 -->
+                        </div>
+                    </aside>
+
+                    <!-- 右侧AI聊天 -->
+                    <aside id="rightAIChat" class="sidebar hidden">
+                        <div class="sidebar-header">
+                            <h2>AI Chat</h2>
+                            <div class="sidebar-controls">
+                                <button id="switchChatToLeftBtn" class="button-icon" title="移至左侧">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M19 12H5M11 6l-6 6 6 6"></path>
+                                    </svg>
+                                </button>
+                                <button id="closeRightChatBtn" class="button-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="rightAIChatContent" class="sidebar-content">
+                            <!-- AI聊天内容将在这里动态插入 -->
+                        </div>
+                    </aside>
                 </div>
-                <div id="rightSidebarContent" class="sidebar-content">
-                    <!-- Content will be dynamically inserted here -->
-                </div>
-            </aside>
+            </div>
         </main>
             
-        <!-- Document Preview Section -->
+        <!-- 文档预览部分 -->
         <section class="document-section card" id="documentSection">
             <div class="document-header">
                 <h2>Document Preview</h2>
@@ -129,7 +187,7 @@
             </div>
         </section>
         
-        <!-- Settings Modal -->
+        <!-- 设置模态框 -->
         <div id="settingsModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -198,40 +256,13 @@
         </div>
     </div>
 
-    <!-- Context Menu for Selected Text -->
+    <!-- 选择文本的上下文菜单 -->
     <div id="contextMenu" class="context-menu">
         <button id="addToWorkspaceBtn">Add to Workspace</button>
         <button id="addAsNoteBtn">Save as Note</button>
     </div>
     
-    <!-- Floating AI Chat -->
-    <div id="floatingChat" class="floating-chat hidden">
-        <div class="floating-chat-header">
-            <h2>AI Chat</h2>
-            <div class="floating-chat-controls">
-                <button id="dockChatLeftBtn" class="button-icon" title="Dock to left">
-                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 3v18M6 3v18M6 12h12"></path>
-                    </svg>
-                </button>
-                <button id="dockChatRightBtn" class="button-icon" title="Dock to right">
-                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                        <path fill="none" stroke="currentColor" stroke-width="2" d="M6 3v18M18 3v18M6 12h12"></path>
-                    </svg>
-                </button>
-                <button id="closeFloatingChatBtn" class="button-icon">
-                    <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
-                        <path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <div id="floatingChatContent" class="floating-chat-content">
-            <!-- AI chat content will be inserted here -->
-        </div>
-    </div>
-
-    <!-- Display Space Overlay -->
+    <!-- 显示空间覆盖层 -->
     <div id="displayOverlay" class="display-overlay hidden">
         <div class="display-container">
             <div class="display-header">
@@ -250,7 +281,7 @@
                 </div>
             </div>
             <div id="displayContent" class="display-content">
-                <!-- Generated content will be displayed here -->
+                <!-- 生成的内容将在这里显示 -->
             </div>
         </div>
     </div>

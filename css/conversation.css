@@ -50,7 +50,7 @@
 .chat-message.assistant {
     align-self: flex-start;
     background-color: var(--color-surface-variant) !important;
-    color: var(--color-surface-variant);
+    color: var(--color-text-primary);
     border: 1px solid var(--color-primary-light);
     border-bottom-left-radius: 4px;
 }
@@ -147,4 +147,68 @@
 /* 消息反馈样式 */
 .message-feedback {
     background-color: var(--color-success) !important;
+}
+
+/* 打字动画 */
+@keyframes typingDots {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+    100% { content: '.'; }
+}
+
+.typing-dots {
+    display: inline-block;
+    position: relative;
+}
+
+.typing-dots::after {
+    content: '.';
+    position: absolute;
+    animation: typingDots 1.5s infinite;
+}
+
+/* 聊天通知 */
+.chat-notification {
+    background-color: var(--color-surface-variant);
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    margin: var(--space-xs) auto;
+    font-size: var(--font-size-xs);
+    width: fit-content;
+    opacity: 0.8;
+    transition: opacity 0.5s;
+}
+
+.chat-notification.fade-out {
+    opacity: 0;
+}
+
+/* 向上滚动提示 */
+.scroll-up-hint {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs);
+    opacity: 0.7;
+    margin-bottom: var(--space-xs);
+}
+
+/* 下拉加载更多指示器 */
+.pull-to-load-indicator {
+    background-color: var(--color-surface-variant);
+    color: var(--color-text-secondary);
+    text-align: center;
+    line-height: 40px;
+    font-size: var(--font-size-sm);
+    transition: all 0.2s ease;
+    border-radius: var(--radius-md);
+    margin: var(--space-xs);
+}
+
+.pull-to-load-indicator.ready {
+    background-color: var(--color-primary-light);
+    color: var(--color-text-on-primary);
 }
