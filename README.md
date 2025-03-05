@@ -1,37 +1,57 @@
-# Project Title
+# Endless Note
 
-文档实验室
+A feature-rich note-taking application with AI chat integration, workspace management, and document generation capabilities.
 
-## MVP Design
+## Features
 
-### MVP核心功能设计
+- **Notes Management**: Create, store, and organize notes in left or right sidebars
+- **AI Chat**: Integrated chatbot for assistance and generating content
+- **Workspaces**: Organize your work in different workspaces
+- **Document Generation**: Generate documents based on your notes and workspace content
+- **Sticky Notes**: Drag and position notes on your workspace
+- **Local Storage**: All data is stored locally in your browser
 
-对话交互区
-LLM聊天界面，类似常见的AI助手对话框
-用户输入需求，AI生成内容
-选中内容右键会出现加入工作区选项
+## Getting Started
 
-### 工作区
+1. Open `index.html` in your web browser
+2. Configure the API settings by clicking the Settings button
+3. Start creating notes or chatting with the AI assistant
+4. Add notes to workspaces and position them as needed
+5. Generate documents from your workspace content
 
-可编辑的文本编辑器
-从对话区选择内容可直接添加到工作区
-支持基本的文本编辑功能（格式化、删除、修改等）
-允许用户手动输入和编辑内容
-可开启多个工作区
+## API Configuration
 
-### 文档生成功能
+To use the AI chat and document generation features, you need to set up API access:
 
-基于工作区内容生成文档
-（第二版）有风格参考功能
-第一版支持PDF和DOC格式导出
+1. Click the Settings button in the header
+2. Enter your API endpoint (default: OpenAI's chat completions endpoint)
+3. Enter your API key
+4. Specify the model to use (e.g., gpt-3.5-turbo)
+5. Click "Test Connection" to verify your settings
+6. Save your settings
 
-### 文档展示页
+## Usage Tips
 
-网页形式预览生成的文档
-在线编辑功能，直接在网页上就可以编辑
-导出按钮，支持下载为PDF或DOC格式
+- Text selection will bring up a context menu to add content to workspace or save as note
+- Notes can be moved between the left and right sidebars
+- Multiple workspaces can be created to organize different projects
+- Use the AI chat to get help, generate ideas, or create content
+- Generated documents can be exported as PDF or DOC files
 
+## Project Structure
 
-## License
+- `index.html` - Main application structure
+- `styles.css` - Application styling
+- `js/app.js` - Main application initialization
+- `js/notes.js` - Notes management functionality
+- `js/conversation.js` - AI chat functionality
+- `js/workspace.js` - Workspace management
+- `js/document.js` - Document generation
+- `js/storage.js` - Local storage handling
+- `js/llm-api.js` - API integration for AI features
+- `js/debug.js` - Debug utilities
 
-Information about the project's license.
+## Keyboard Shortcuts
+
+- `Enter` in chat input - Send message
+- `Shift + Enter` in chat input - Add a new line
