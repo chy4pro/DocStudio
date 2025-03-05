@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load settings from localStorage
   function loadSettings() {
-    const savedSettings = localStorage.getItem("endlessNoteSettings")
+    const savedSettings = localStorage.getItem("docStudioSettings")
     if (savedSettings) {
       state.settings = JSON.parse(savedSettings)
     }
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     state.settings.modelName = elements.modelNameInput.value
     state.settings.temperature = Number.parseFloat(elements.temperatureInput.value)
 
-    localStorage.setItem("endlessNoteSettings", JSON.stringify(state.settings))
+    localStorage.setItem("docStudioSettings", JSON.stringify(state.settings))
 
     showConnectionStatus("Settings saved successfully!", "success")
     setTimeout(() => {
@@ -500,13 +500,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Show loading indicator
         const loadingMessage = document.createElement("div")
-        loadingMessage.className = "flex justify-start"
+        loadingMessage.className = "message ai"
         loadingMessage.innerHTML = `
-          <div class="message ai max-w-[90%]">
-            <div class="message-content">
-              <p class="animate-pulse text-sm">AI is thinking...</p>
-            </div>
-          </div>
+        <div class="message-content">AI is thinking...</div>
         `
         messages.appendChild(loadingMessage)
         messages.scrollTop = messages.scrollHeight
@@ -835,7 +831,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <!DOCTYPE html>
         <html>
           <head>
-            <title>EndlessNote Display</title>
+            <title>DocStudio Display</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
           </head>
           <body style="margin: 0; padding: 0;">
