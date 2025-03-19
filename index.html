@@ -1,191 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DocStudio</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <title>DocStudio</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>DocStudio</h1>
-      <div class="header-buttons">
-        <button id="toggle-notes-library" class="btn btn-outline">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"></path><path d="M15 3v6h6"></path></svg>
-          Notes Library
-        </button>
-        <button id="toggle-ai-chat" class="btn btn-outline">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          AI Chat
-        </button>
-        <button id="toggle-settings" class="btn btn-outline">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          Settings
-        </button>
-      </div>
-    </header>
-
-    <div class="main-content">
-      <!-- Left Sidebar -->
-      <div id="left-sidebar" class="sidebar"></div>
-
-      <!-- Main Workspace Area -->
-      <div class="workspace-container">
-        <div id="workspace" class="workspace">
-          <h2>Workspace</h2>
-          <div class="workspace-content">
-            <textarea id="workspace-text" placeholder="Add your content here..."></textarea>
-            <div id="workspace-notes" class="workspace-notes"></div>
-          </div>
-          <div class="workspace-controls">
-            <input type="text" id="prompt-input" placeholder="Enter prompt for AI generation...">
-            <button id="generate-btn" class="btn btn-primary" disabled>
-              Generate
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
-            </button>
-          </div>
+    <div class="header">
+        <h1>DocStudio</h1>
+        <button class="settings-btn">⚙️ 设置</button>
+    </div>
+    <div class="desktop-container">
+        <div class="editor-container">
+            <div class="editor-header">
+                <button id="workspace-btn" class="editor-btn">整理</button>
+                <span class="spacer"></span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="workspace-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <textarea id="workspace" placeholder="请输入文本"></textarea>
         </div>
-
-        <!-- Display Space -->
-        <div id="display-space" class="display-space hidden">
-          <div class="display-header">
-            <h2>Display Space</h2>
-            <div class="display-controls">
-              <button id="open-new-window" class="btn btn-icon" title="Open in new window">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-              </button>
-              <button id="close-display-space" class="btn btn-icon" title="Close Display Space">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
+        <button id="markdown-button" class="markdown-btn">generate</button>
+        <div class="editor-container">
+            <div class="editor-header">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="displayspace-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="spacer"></span>
+                <button id="displayspace-btn" class="editor-btn">render</button>
             </div>
-          </div>
-          <iframe id="display-content" class="display-content">
-              <div class="empty-message">
-                Enter a prompt and generate content from your workspace to see it displayed here.
-              </div>
-          </iframe>
+            <textarea id="displayspace" placeholder="请输入文本"></textarea>
         </div>
-      </div>
-
-      <!-- Right Sidebar -->
-      <div id="right-sidebar" class="sidebar"></div>
     </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Settings</h2>
-          <button id="close-settings" class="btn btn-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+    <!-- 全屏iframe显示 -->
+    <div id="fullscreenContainer" class="fullscreen-container">
+        <div class="iframe-toolbar">
+            <button id="openNewTabBtn" class="iframe-btn">在新标签页打开</button>
+            <button id="closeIframeBtn" class="iframe-btn">关闭</button>
         </div>
-        <div class="modal-body">
-          <form id="settings-form">
-            <div class="form-group">
-              <label for="api-endpoint">API Endpoint</label>
-              <input type="url" id="api-endpoint" placeholder="https://api.example.com/v1/chat/completions" required>
-            </div>
-            <div class="form-group">
-              <label for="api-key">API Key</label>
-              <input type="password" id="api-key" placeholder="sk-..." required>
-            </div>
-            <div class="form-group">
-              <label for="model-name">Model Name</label>
-              <input type="text" id="model-name" placeholder="gpt-3.5-turbo" value="gpt-3.5-turbo">
-            </div>
-            <div class="form-group">
-              <label for="temperature">Temperature</label>
-              <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
-              <span id="temperature-value">0.7</span>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Save Settings</button>
-              <button type="button" id="test-connection" class="btn btn-outline">Test Connection</button>
-            </div>
-          </form>
-          <div id="connection-status" class="hidden"></div>
+        <div class="iframe-container">
+            <iframe id="renderFrame"></iframe>
         </div>
-      </div>
     </div>
-  </div>
-
-  <!-- Templates -->
-  <template id="sidebar-component-template">
-    <div class="sidebar-component">
-      <div class="sidebar-header">
-        <h2></h2>
-        <div class="sidebar-controls">
-          <button class="btn btn-icon toggle-position" title="Move to other sidebar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon panel-icon"></svg>
-          </button>
-          <button class="btn btn-icon close-btn" title="Close">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+    
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>设置</h3>
+                <button class="close-btn" id="closeModal">×</button>
+            </div>
+            <div class="setting-item">
+                <label for="apiEndpoint">API接口地址</label>
+                <input type="text" id="apiEndpoint" placeholder="例如: https://api.example.com/v1">
+            </div>
+            <div class="setting-item">
+                <label for="apiKey">API Key</label>
+                <input type="password" id="apiKey" placeholder="输入您的API密钥">
+            </div>
+            <div class="setting-item">
+                <label for="model">模型名称</label>
+                <input type="text" id="model" placeholder="例如: gpt-3.5-turbo">
+            </div>
+            <div class="setting-item">
+                <label for="temperature">温度 (0-2)</label>
+                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+                <span id="tempValue">0.7</span>
+            </div>
+            <div class="setting-item">
+                <label for="maxTokens">最大令牌数</label>
+                <input type="number" id="maxTokens" min="1" max="4096" value="2048">
+            </div>
+            <div class="setting-item" style="display: flex; gap: 10px;">
+                <button id="testAPI" style="flex: 1; padding: 8px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">测试连接</button>
+                <button id="saveSettings" style="flex: 1; padding: 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">保存设置</button>
+            </div>
+            <div id="testResult" style="margin-top: 10px; padding: 8px; display: none; border-radius: 4px; text-align: center;"></div>
         </div>
-      </div>
-      <div class="sidebar-content"></div>
     </div>
-  </template>
-
-  <template id="notes-library-template">
-    <div class="notes-library">
-      <div class="notes-controls">
-        <button id="add-to-workspace" class="btn btn-sm hidden">
-          Add to Workspace
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </button>
-      </div>
-      <div class="notes-list"></div>
-      <div class="new-note">
-        <textarea placeholder="Write a new note..."></textarea>
-        <button class="btn btn-sm add-note-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
-      </div>
+    
+    <!-- 右键菜单 -->
+    <div id="contextMenu" class="context-menu">
+        <div class="menu-content">
+            <input type="text" id="contextMenuInput" placeholder="在这里输入...">
+        </div>
     </div>
-  </template>
-
-  <template id="ai-chat-template">
-    <div class="ai-chat">
-      <div class="messages"></div>
-      <div class="chat-input">
-        <textarea placeholder="Type your message here..."></textarea>
-        <button class="btn btn-sm send-btn" disabled>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-        </button>
-      </div>
-    </div>
-  </template>
-
-  <template id="note-template">
-    <div class="note">
-      <div class="note-meta"></div>
-      <p class="note-content"></p>
-    </div>
-  </template>
-
-  <template id="workspace-note-template">
-    <div class="workspace-note" draggable="true">
-      <button class="btn btn-icon remove-note">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-      <div class="note-meta"></div>
-      <p class="note-content"></p>
-    </div>
-  </template>
-
-  <template id="message-template">
-    <div class="message">
-      <div class="message-content"></div>
-      <button class="btn btn-icon save-note-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-      </button>
-    </div>
-  </template>
-
-  <script src="script.js"></script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
-
