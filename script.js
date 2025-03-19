@@ -109,9 +109,8 @@ testAPIBtn.addEventListener('click', async function() {
     }
 });
 
-// 获取开关元素
+// 获取工作区开关元素
 const workspaceToggle = document.getElementById('workspace-toggle');
-const displayspaceToggle = document.getElementById('displayspace-toggle');
 
 // 记录AI建议是否启用
 let aiSuggestionsEnabled = localStorage.getItem('aiSuggestionsEnabled') !== 'false';
@@ -278,24 +277,126 @@ function loadWorkspaceContent() {
     }
 }
 
-// 为右侧输入框添加自动保存功能
+// 为右侧输入框和预览区添加变量和功能
 const displayspace = document.getElementById('displayspace');
+const markdownPreview = document.getElementById('markdown-preview');
+const displayspaceToggle = document.getElementById('displayspace-toggle');
 let saveTimeoutRight;
+let markdownRenderTimeout;
+let isUpdatingDisplayspace = false; // 防止循环更新
+let isUpdatingPreview = false; // 防止循环更新
+
+// 初始化TurndownService (HTML转Markdown)
+const turndownService = new TurndownService({
+    headingStyle: 'atx',
+    codeBlockStyle: 'fenced',
+    emDelimiter: '*'
+});
+
+// 设置marked选项
+marked.setOptions({
+    breaks: true, // 换行符转换为<br>
+    gfm: true,    // 使用GitHub风格Markdown
+    sanitize: false // 不转义HTML
+});
 
 // 自动保存右侧文本内容
 displayspace.addEventListener('input', function() {
+    if (isUpdatingDisplayspace) return; // 避免循环触发
+    
     clearTimeout(saveTimeoutRight);
     saveTimeoutRight = setTimeout(function() {
-        localStorage.setItem('displayspaceContent', displayspace.value);
+        const content = displayspace.value;
+        localStorage.setItem('displayspaceContent', content);
         console.log('右侧显示区域内容已自动保存');
+        
+        // 如果自动渲染开启，则更新预览
+        if (displayspaceToggle.checked && !isUpdatingPreview) {
+            updateMarkdownPreview(content);
+        }
     }, 500); // 500ms防抖，避免频繁保存
 });
 
-// 加载右侧保存的文本内容
+// 监听预览区域的修改
+markdownPreview.addEventListener('input', function() {
+    if (isUpdatingPreview) return; // 避免循环触发
+    
+    clearTimeout(markdownRenderTimeout);
+    markdownRenderTimeout = setTimeout(function() {
+        // 使用turndown将HTML转换回Markdown
+        isUpdatingDisplayspace = true;
+        const html = markdownPreview.innerHTML;
+        try {
+            const markdown = turndownService.turndown(html);
+            displayspace.value = markdown;
+            localStorage.setItem('displayspaceContent', markdown);
+            console.log('从预览区更新了Markdown内容');
+        } catch (e) {
+            console.error('HTML转Markdown出错:', e);
+        }
+        isUpdatingDisplayspace = false;
+    }, 500);
+});
+
+// 更新Markdown预览区域
+function updateMarkdownPreview(markdown) {
+    if (!markdown) return;
+    
+    isUpdatingPreview = true;
+    try {
+        const html = marked.parse(markdown);
+        markdownPreview.innerHTML = html;
+    } catch (e) {
+        console.error('Markdown渲染出错:', e);
+        markdownPreview.innerHTML = `<p style="color: red;">Markdown渲染出错: ${e.message}</p>`;
+    }
+    isUpdatingPreview = false;
+}
+
+// 自动渲染开关功能
+displayspaceToggle.addEventListener('change', function() {
+    const isAutoRenderEnabled = this.checked;
+    
+    // 保存状态到localStorage
+    localStorage.setItem('autoRenderEnabled', isAutoRenderEnabled);
+    
+    if (isAutoRenderEnabled) {
+        // 开启自动渲染，显示预览区域，隐藏文本区域
+        displayspace.style.display = 'none';
+        markdownPreview.style.display = 'block';
+        // 更新预览内容
+        updateMarkdownPreview(displayspace.value);
+        // 聚焦预览区域
+        markdownPreview.focus();
+    } else {
+        // 关闭自动渲染，显示文本区域，隐藏预览区域
+        displayspace.style.display = 'block';
+        markdownPreview.style.display = 'none';
+        // 聚焦文本区域
+        displayspace.focus();
+    }
+});
+
+// 加载右侧保存的文本内容和渲染状态
 function loadDisplayspaceContent() {
+    // 加载文本内容
     const savedContent = localStorage.getItem('displayspaceContent');
     if (savedContent !== null) {
         displayspace.value = savedContent;
+    }
+    
+    // 加载自动渲染状态
+    const autoRenderEnabled = localStorage.getItem('autoRenderEnabled') === 'true';
+    displayspaceToggle.checked = autoRenderEnabled;
+    
+    // 根据状态设置显示
+    if (autoRenderEnabled) {
+        displayspace.style.display = 'none';
+        markdownPreview.style.display = 'block';
+        updateMarkdownPreview(savedContent || '');
+    } else {
+        displayspace.style.display = 'block';
+        markdownPreview.style.display = 'none';
     }
 }
 
@@ -1068,7 +1169,30 @@ document.addEventListener('DOMContentLoaded', function() {
     loadWorkspaceContent();
     loadDisplayspaceContent();
     
-    // 为两个文本输入框添加右键菜单
+        // 为两个文本输入框和Markdown预览区添加右键菜单
     addContextMenuListeners(document.getElementById('workspace'));
     addContextMenuListeners(document.getElementById('displayspace'));
+    
+    // 为Markdown预览区添加右键菜单
+    markdownPreview.addEventListener('contextmenu', function(event) {
+        event.preventDefault(); // 阻止默认右键菜单
+        
+        // 记录当前活动元素为预览区
+        activeTextarea = displayspace; // 实际使用右侧文本框来处理输入
+        
+        // 记录预览区选中的文本
+        const selection = window.getSelection();
+        const selectedText = selection.toString();
+        
+        // 记录光标位置（在原始Markdown中的对应位置）
+        // 这里简化处理，只考虑添加到文本末尾
+        cursorPosition = displayspace.value.length;
+        
+        // 获取点击位置坐标
+        const x = event.clientX;
+        const y = event.clientY;
+        
+        // 显示菜单
+        showContextMenu(x, y, selectedText);
+    });
 });

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>DocStudio</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- 添加Markdown库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
 </head>
 <body>
     <div class="header">
@@ -15,24 +18,31 @@
             <div class="editor-header">
                 <button id="workspace-btn" class="editor-btn">整理</button>
                 <span class="spacer"></span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="workspace-toggle">
-                    <span class="toggle-slider"></span>
-                </label>
+                <div class="toggle-container">
+                    <span class="toggle-label">AI建议</span>
+                    <label class="toggle-switch" title="开启/关闭AI自动建议功能">
+                        <input type="checkbox" id="workspace-toggle">
+                        <span class="toggle-slider" title="开启/关闭AI自动建议功能"></span>
+                    </label>
+                </div>
             </div>
             <textarea id="workspace" placeholder="请输入文本"></textarea>
         </div>
         <button id="markdown-button" class="markdown-btn">generate</button>
         <div class="editor-container">
             <div class="editor-header">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="displayspace-toggle">
-                    <span class="toggle-slider"></span>
-                </label>
+                <div class="toggle-container">
+                    <label class="toggle-switch" title="开启/关闭自动渲染功能">
+                        <input type="checkbox" id="displayspace-toggle">
+                        <span class="toggle-slider" title="开启/关闭自动渲染功能"></span>
+                    </label>
+                    <span class="toggle-label">自动渲染</span>
+                </div>
                 <span class="spacer"></span>
                 <button id="displayspace-btn" class="editor-btn">render</button>
             </div>
             <textarea id="displayspace" placeholder="请输入文本"></textarea>
+            <div id="markdown-preview" class="markdown-preview" contenteditable="true"></div>
         </div>
     </div>
     <!-- 全屏iframe显示 -->

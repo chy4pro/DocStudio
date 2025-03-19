@@ -171,13 +171,26 @@ body {
     flex-grow: 1;
 }
 
+/* 开关容器和标签样式 */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.toggle-label {
+    font-size: 12px;
+    color: #444;
+}
+
 /* 开关样式 */
 .toggle-switch {
     position: relative;
     display: inline-block;
     width: 40px;
     height: 20px;
-    margin-left: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .toggle-switch input {
@@ -291,4 +304,105 @@ h1 {
     outline: none;
     border-color: #000;
     border-width: 2px;
+}
+
+/* Markdown 预览区域样式 */
+.markdown-preview {
+    flex-grow: 1;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    overflow: auto;
+    background-color: white;
+    display: none; /* 默认隐藏 */
+    line-height: 1.5;
+}
+
+.markdown-preview:focus {
+    outline: 1px solid #4CAF50;
+}
+
+/* Markdown 内容样式 */
+.markdown-preview h1 {
+    font-size: 24px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.markdown-preview h2 {
+    font-size: 20px;
+    margin-top: 14px;
+    margin-bottom: 7px;
+}
+
+.markdown-preview h3 {
+    font-size: 18px;
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.markdown-preview h4, .markdown-preview h5, .markdown-preview h6 {
+    font-size: 16px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.markdown-preview p {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.markdown-preview ul, .markdown-preview ol {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.markdown-preview blockquote {
+    border-left: 4px solid #ccc;
+    margin: 8px 0;
+    padding-left: 16px;
+    color: #555;
+}
+
+.markdown-preview code {
+    font-family: monospace;
+    padding: 2px 4px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+}
+
+.markdown-preview pre {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+.markdown-preview pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+}
+
+.markdown-preview table, .markdown-preview th, .markdown-preview td {
+    border: 1px solid #ccc;
+}
+
+.markdown-preview th, .markdown-preview td {
+    padding: 8px;
+    text-align: left;
+}
+
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
 }
