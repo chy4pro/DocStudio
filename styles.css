@@ -14,16 +14,28 @@ body {
     position: relative;
 }
 
-.settings-btn {
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-left h1 {
+    margin: 0;
+}
+
+.settings-btn, .about-btn {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 16px;
     padding: 5px 10px;
     border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
 }
 
-.settings-btn:hover {
+.settings-btn:hover, .about-btn:hover {
     background-color: #f0f0f0;
 }
 

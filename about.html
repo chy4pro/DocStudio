@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>DocStudio - 使用帮助</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+            margin-top: 24px;
+        }
+        
+        .feature-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .feature-title {
+            color: #2c3e50;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .shortcut {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .tip {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .note {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        
+        .back-btn:hover {
+            background: #45a049;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">返回编辑器</a>
+    
+    <h1>DocStudio 使用指南</h1>
+    <p>欢迎使用 DocStudio！这篇指南将详细介绍所有功能的使用方法。</p>
+    
+    <h2>目录</h2>
+    <ul>
+        <li><a href="#basic-setup">基础设置</a></li>
+        <li><a href="#workspace">左侧工作区</a></li>
+        <li><a href="#displayspace">右侧显示区</a></li>
+        <li><a href="#ai-features">AI 功能</a></li>
+        <li><a href="#other-features">其他功能</a></li>
+    </ul>
+    
+    <h2 id="basic-setup">基础设置</h2>
+    <div class="feature-section">
+        <div class="feature-title">🔧 初始配置</div>
+        <p>首次使用时，需要配置 API 设置：</p>
+        <ol>
+            <li>点击界面右上角的⚙️设置图标</li>
+            <li>填写以下信息：
+                <ul>
+                    <li>API 接口地址：完整的 API 端点（如：https://api.openai.com/v1）</li>
+                    <li>API Key：您的 API 密钥</li>
+                    <li>模型名称：要使用的模型（如：gpt-3.5-turbo）</li>
+                    <li>温度：影响输出的随机性（0-2，较低值产生更确定的输出）</li>
+                    <li>最大令牌数：限制每次请求的最大字数</li>
+                </ul>
+            </li>
+            <li>点击"测试连接"确保设置正确</li>
+            <li>点击"保存设置"完成配置</li>
+        </ol>
+        <div class="note">所有设置都存储在浏览器本地，确保您的 API 密钥安全。</div>
+    </div>
+
+    <h2 id="workspace">左侧工作区</h2>
+    <div class="feature-section">
+        <div class="feature-title">📝 基本编辑</div>
+        <p>左侧是您的主要工作区，您可以：</p>
+        <ul>
+            <li>直接输入或粘贴文本</li>
+            <li>使用 Markdown 语法格式化文本</li>
+            <li>内容会自动保存到浏览器本地存储</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <div class="feature-title">🔄 自动建议功能</div>
+        <p>工作区顶部有"AI建议"开关：</p>
+        <ul>
+            <li>开启后，在您停止输入 5 秒后会自动提供建议</li>
+            <li>建议会添加到文本末尾，以"--- AI建议 ---"标记</li>
+            <li>如果不需要建议，可以随时关闭此功能</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <div class="feature-title">📋 整理功能</div>
+        <p>使用"整理"按钮优化内容：</p>
+        <ul>
+            <li>点击"整理"开始处理</li>
+            <li>AI 会实时输出优化后的内容</li>
+            <li>可以随时点击"停止"中断处理</li>
+            <li>完成后可以点击"回退"恢复原始内容</li>
+        </ul>
+        <div class="tip">建议在完成初稿后使用此功能，它会帮助精简和组织您的内容。</div>
+    </div>
+
+    <h2 id="displayspace">右侧显示区</h2>
+    <div class="feature-section">
+        <div class="feature-title">📄 Markdown 预览</div>
+        <p>右侧区域支持实时 Markdown 预览：</p>
+        <ul>
+            <li>打开"自动渲染"开关启用预览模式</li>
+            <li>可以直接在预览界面中编辑内容</li>
+            <li>内容会自动同步到 Markdown 文本</li>
+            <li>支持完整的 Markdown 语法显示</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <div class="feature-title">🔄 生成功能</div>
+        <p>使用中间的"generate"按钮生成文档：</p>
+        <ul>
+            <li>将左侧工作区的内容转换为结构化文档</li>
+            <li>生成的文档会显示在右侧</li>
+            <li>生成过程中会显示进度提示</li>
+            <li>失败时会显示错误信息</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <div class="feature-title">🖼️ HTML 预览</div>
+        <p>使用"render"按钮预览 HTML：</p>
+        <ul>
+            <li>将当前内容转换为完整的 HTML 页面</li>
+            <li>在全屏模式下展示渲染结果</li>
+            <li>可以选择在新标签页中打开</li>
+            <li>支持关闭预览返回编辑界面</li>
+        </ul>
+    </div>
+
+    <h2 id="ai-features">AI 功能</h2>
+    <div class="feature-section">
+        <div class="feature-title">💡 右键菜单功能</div>
+        <p>在任何编辑区域右键点击可以：</p>
+        <ul>
+            <li>对选中的文本提出问题</li>
+            <li>获取 AI 的即时回答</li>
+            <li>回答会插入到当前位置</li>
+            <li>支持中文输入法</li>
+        </ul>
+        <div class="tip">
+            选中特定文本后再右键，AI 会专注于回答关于该文本的问题。
+        </div>
+    </div>
+
+    <h2 id="other-features">其他功能</h2>
+    <div class="feature-section">
+        <div class="feature-title">💾 自动保存</div>
+        <p>所有内容都会自动保存：</p>
+        <ul>
+            <li>编辑器内容自动保存到本地</li>
+            <li>API 设置保存到本地</li>
+            <li>开关状态会被记住</li>
+            <li>刷新页面不会丢失内容</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <div class="feature-title">⌨️ 快捷操作</div>
+        <p>常用快捷键：</p>
+        <ul>
+            <li><span class="shortcut">Esc</span> - 关闭右键菜单</li>
+            <li><span class="shortcut">Enter</span> - 在右键菜单中提交问题</li>
+        </ul>
+    </div>
+
+    <div class="note">
+        <strong>注意：</strong>为了获得最佳体验，建议使用现代浏览器（Chrome、Firefox、Safari 或 Edge 的最新版本）。
+    </div>
+
+    <a href="index.html" class="back-btn">返回编辑器</a>
+</body>
+</html>
