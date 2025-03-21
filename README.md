@@ -32,11 +32,12 @@ This is a completely serverless application—all API keys and content are store
 
 ### How to Use
 
-1. **Content Creation**: Type or paste your content in the left editor panel
-2. **Generate Document**: Click the "generate" button to transform your content into a well-structured document in the right panel
-3. **Organize Content**: Use the "整理" (Organize) button to refine and streamline your content
-4. **Preview HTML**: Click the "render" button to see your content as a formatted web page
-5. **Context Menu**: Right-click anywhere in either editor to ask AI questions about your content
+1. **Getting Started**: Click the "📖 使用帮助" (Help) link next to the title for detailed usage instructions
+2. **Content Creation**: Type or paste your content in the left editor panel
+3. **Generate Document**: Click the "generate" button to transform your content into a well-structured document in the right panel
+4. **Organize Content**: Use the "整理" (Organize) button to refine and streamline your content
+5. **Preview HTML**: Click the "render" button to see your content as a formatted web page
+6. **Context Menu**: Right-click anywhere in either editor to ask AI questions about your content
 
 ### Requirements
 
@@ -47,9 +48,9 @@ This is a completely serverless application—all API keys and content are store
 
 #### Implemented Features
 - ✅ AI-powered document generation
-- ✅ Auto-suggestions after 5 seconds of inactivity
-- ✅ Right-click AI assistance
-- ✅ Text selection querying
+- ✅ AI auto-suggestions after 5s of inactivity
+- ✅ Right-click to ask AI
+- ✅ Text selection questions
 - ✅ Content organization
 - ✅ Markdown to HTML conversion
 - ✅ Auto-save functionality
@@ -60,21 +61,23 @@ This is a completely serverless application—all API keys and content are store
 #### Future Features
 - 🔄 Multi-language support
 - 🔄 Focus mode
+- 🔄 Note mode (for easier draft processing)
 - 🔄 In-line AI text insertions
 - 🔄 Text selection editing
 - 🔄 Generated content review and correction
+- 🔄 Writer mode (Conversational writing mode)
 - 🔄 Additional AI actions via right-click
 - 🔄 Multiple workspace saving and management
 - 🔄 Export workspace files
 - 🔄 Version control
-- 🔄 Document-wide search and mass edit functionality
+- 🔄 Document-wide search with display and batch editing to prevent missing changes
 - 🔄 File upload and knowledge base
 - 🔄 Image recognition
 - 🔄 Image insertion in documents
-- 🔄 Self-check functionality 
-- 🔄 Post-render editing capabilities
-- 🔄 Style and format templates
-- 🔄 Additional export formats (PDF, DOCX, PPT, Excel, website publishing)
+- 🔄 Self-check functionality (with checking logic)
+- 🔄 Post-render editing on final rendered page
+- 🔄 Style and format templates based on provided examples
+- 🔄 Additional export formats (PDF, DOCX, PPT, EXCEL) and website publishing
 - 🔄 Template library
 - 🔄 Server mode option
 
@@ -110,11 +113,12 @@ DocStudio 是一款基于人工智能的文档编辑和格式化工具，帮助�
 
 ### 使用方法
 
-1. **内容创建**：在左侧编辑器面板中输入或粘贴您的内容
-2. **生成文档**：点击"generate"按钮将您的内容转换为右侧面板中的结构化文档
-3. **整理内容**：使用"整理"按钮精简和优化您的内容
-4. **预览 HTML**：点击"render"按钮查看格式化的网页版内容
-5. **上下文菜单**：在任一编辑器中右键单击以向 AI 询问有关您内容的问题
+1. **快速入门**：点击标题旁的"📖 使用帮助"链接获取详细使用说明
+2. **内容创建**：在左侧编辑器面板中输入或粘贴您的内容
+3. **生成文档**：点击"generate"按钮将您的内容转换为右侧面板中的结构化文档
+4. **整理内容**：使用"整理"按钮精简和优化您的内容
+5. **预览 HTML**：点击"render"按钮查看格式化的网页版内容
+6. **上下文菜单**：在任一编辑器中右键单击以向 AI 询问有关您内容的问题
 
 ### 系统要求
 
@@ -138,9 +142,12 @@ DocStudio 是一款基于人工智能的文档编辑和格式化工具，帮助�
 #### 未来功能
 - 🔄 多语言支持
 - 🔄 专注模式
+- 🔄 分段便签模式(让草稿处理更方便)
 - 🔄 AI文中插入式输出
 - 🔄 选中修改
 - 🔄 生成内容批改
+- 🔄 写手模式(对话写作模式)
+- 🔄 对每个按钮后面的prompt进行自定义
 - 🔄 右键让AI执行功能
 - 🔄 保存工作区，并能创建多个工作区
 - 🔄 导出工作区文件

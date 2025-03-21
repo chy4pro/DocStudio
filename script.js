@@ -1,113 +1,5 @@
-// 获取元素
-const settingsBtn = document.querySelector('.settings-btn');
-const modal = document.getElementById('settingsModal');
-const closeBtn = document.getElementById('closeModal');
-const apiEndpointInput = document.getElementById('apiEndpoint');
-const apiKeyInput = document.getElementById('apiKey');
-const modelInput = document.getElementById('model');
-const temperatureInput = document.getElementById('temperature');
-const tempValueSpan = document.getElementById('tempValue');
-const maxTokensInput = document.getElementById('maxTokens');
-const testAPIBtn = document.getElementById('testAPI');
-const saveSettingsBtn = document.getElementById('saveSettings');
-const testResultDiv = document.getElementById('testResult');
+// 获取工作区元素
 const textarea = document.getElementById('workspace');
-
-// 打开设置弹窗
-settingsBtn.addEventListener('click', function() {
-    modal.style.display = 'flex';
-});
-
-// 关闭设置弹窗
-closeBtn.addEventListener('click', function() {
-    modal.style.display = 'none';
-});
-
-// 点击弹窗外部关闭弹窗
-window.addEventListener('click', function(event) {
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-});
-
-// 显示温度值
-temperatureInput.addEventListener('input', function() {
-    tempValueSpan.textContent = this.value;
-});
-
-// 保存设置
-saveSettingsBtn.addEventListener('click', function() {
-    // 保存设置到localStorage
-    const settings = {
-        apiEndpoint: apiEndpointInput.value,
-        apiKey: apiKeyInput.value,
-        model: modelInput.value,
-        temperature: temperatureInput.value,
-        maxTokens: maxTokensInput.value
-    };
-    localStorage.setItem('APISettings', JSON.stringify(settings));
-    alert('设置已保存');
-    modal.style.display = 'none';
-});
-
-// 加载保存的设置
-function loadSettings() {
-    const savedSettings = localStorage.getItem('APISettings');
-    if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        apiEndpointInput.value = settings.apiEndpoint || '';
-        apiKeyInput.value = settings.apiKey || '';
-        modelInput.value = settings.model || '';
-        temperatureInput.value = settings.temperature || 0.7;
-        tempValueSpan.textContent = settings.temperature || 0.7;
-        maxTokensInput.value = settings.maxTokens || 2048;
-    }
-}
-
-// 测试API连接
-testAPIBtn.addEventListener('click', async function() {
-    testResultDiv.style.display = 'block';
-    testResultDiv.textContent = '测试中...';
-    testResultDiv.style.backgroundColor = '#f0f0f0';
-    
-    const endpoint = apiEndpointInput.value.trim();
-    const apiKey = apiKeyInput.value.trim();
-    const model = modelInput.value.trim();
-    
-    if (!endpoint || !apiKey || !model) {
-        testResultDiv.textContent = '错误: 请填写所有必要的字段';
-        testResultDiv.style.backgroundColor = '#ffebee';
-        return;
-    }
-    
-    try {
-        // 构建API请求 - 使用简单的模型预检请求，避免生成过多内容
-        const response = await fetch(`${endpoint}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [{ role: 'user', content: 'Hello' }],
-                max_tokens: 1  // 只请求1个token的响应，节省API调用费用
-            })
-        });
-        
-        if (response.ok) {
-            testResultDiv.textContent = '连接成功！API 设置有效。';
-            testResultDiv.style.backgroundColor = '#e8f5e9';
-        } else {
-            const errorData = await response.json();
-            testResultDiv.textContent = `错误: ${errorData.error?.message || response.statusText}`;
-            testResultDiv.style.backgroundColor = '#ffebee';
-        }
-    } catch (error) {
-        testResultDiv.textContent = `错误: ${error.message || '连接失败'}`;
-        testResultDiv.style.backgroundColor = '#ffebee';
-    }
-});
 
 // 获取工作区开关元素
 const workspaceToggle = document.getElementById('workspace-toggle');
@@ -885,106 +777,26 @@ function showContextMenu(x, y, selectedText) {
     }, 10);
 }
 
-// 隐藏右键菜单并清空内容
-function hideContextMenu() {
-    contextMenu.style.display = 'none';
-    document.getElementById('contextMenuInput').value = '';
-}
-
-// 点击页面其他地方时隐藏菜单
-document.addEventListener('click', function() {
-    hideContextMenu();
-});
-
-// 按Esc键时隐藏菜单
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' && contextMenu.style.display === 'block' && !isIMEComposing) {
-        hideContextMenu();
-    }
-});
-
-// 添加输入法组合状态跟踪
-let isIMEComposing = false;
-
-// 为右键菜单中的输入框添加输入法组合事件监听
-const contextMenuInput = document.getElementById('contextMenuInput');
-contextMenuInput.addEventListener('compositionstart', function() {
-    isIMEComposing = true;
-    console.log('IME composition started');
-});
-
-contextMenuInput.addEventListener('compositionend', function() {
-    isIMEComposing = false;
-    console.log('IME composition ended');
-    // 在组合输入结束后也调整输入框大小
-    adjustInputSize();
-});
-
-// 添加输入内容变化时自动调整输入框大小的功能
-contextMenuInput.addEventListener('input', function() {
-    adjustInputSize();
-});
-
-// 调整输入框大小以适应内容
-function adjustInputSize() {
-    // 设置最小宽度
-    const minWidth = 150;
-    // 计算内容宽度 (每个字符约 7px，但中文字符更宽)
-    const contentLength = contextMenuInput.value.length;
-    // 中文和英文混合情况下的估计宽度
-    const estimatedWidth = Math.max(minWidth, contentLength * 12);
-    
-    // 限制最大宽度，避免输入框过宽
-    const maxWidth = Math.min(window.innerWidth * 0.8, 500); 
-    const newWidth = Math.min(estimatedWidth, maxWidth);
-    
-    // 应用计算后的宽度
-    contextMenuInput.style.width = newWidth + 'px';
-    
-    // 更新菜单容器宽度，比输入框稍宽以便有内边距
-    const menuContent = document.querySelector('.menu-content');
-    if (menuContent) {
-        menuContent.style.width = (newWidth + 20) + 'px';
-    }
-    
-    // 调整菜单位置，避免超出视口边界
-    adjustMenuPosition();
-}
-
-// 调整菜单位置以避免超出视口
-function adjustMenuPosition() {
-    const menu = document.getElementById('contextMenu');
-    if (menu.style.display !== 'block') return;
-    
-    const rect = menu.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    
-    // 如果菜单右侧超出视口，向左移动
-    if (rect.right > viewportWidth) {
-        const overflowX = rect.right - viewportWidth;
-        menu.style.left = (parseInt(menu.style.left) - overflowX - 10) + 'px';
-    }
-}
 
 // 为右键菜单中的输入框添加回车键事件
-contextMenuInput.addEventListener('keydown', async function(event) {
-    // 只有当不在输入法组合状态时才处理回车键事件
-    if (event.key === 'Enter' && !isIMEComposing) {
-        const inputText = this.value.trim();
-        // 保存当前活动的文本区域引用，因为hideContextMenu会清空这些状态
-        const currentTextarea = activeTextarea;
-        const referenceText = currentTextarea ? currentTextarea.value : '';
+// contextMenuInput.addEventListener('keydown', async function(event) {
+//     // 只有当不在输入法组合状态时才处理回车键事件
+//     if (event.key === 'Enter' && !isIMEComposing) {
+//         const inputText = this.value.trim();
+//         // 保存当前活动的文本区域引用，因为hideContextMenu会清空这些状态
+//         const currentTextarea = activeTextarea;
+//         const referenceText = currentTextarea ? currentTextarea.value : '';
         
-        // 立即隐藏菜单并清空内容
-        hideContextMenu();
+//         // 立即隐藏菜单并清空内容
+//         hideContextMenu();
         
-        // 如果有有效输入和文本区域，在后台生成AI回答
-        if (inputText && currentTextarea) {
-            // 生成AI回答
-            await generateContextMenuResponse(inputText, referenceText);
-        }
-    }
-});
+//         // 如果有有效输入和文本区域，在后台生成AI回答
+//         if (inputText && currentTextarea) {
+//             // 生成AI回答
+//             await generateContextMenuResponse(inputText, referenceText);
+//         }
+//     }
+// });
 
 // 根据右键菜单输入框内容生成AI回答
 async function generateContextMenuResponse(inputText, referenceText) {
@@ -1165,13 +977,9 @@ async function generateContextMenuResponse(inputText, referenceText) {
 
 // 页面加载时加载设置和内容
 document.addEventListener('DOMContentLoaded', function() {
-    loadSettings();
     loadWorkspaceContent();
     loadDisplayspaceContent();
     
-        // 为两个文本输入框和Markdown预览区添加右键菜单
-    addContextMenuListeners(document.getElementById('workspace'));
-    addContextMenuListeners(document.getElementById('displayspace'));
     
     // 为Markdown预览区添加右键菜单
     markdownPreview.addEventListener('contextmenu', function(event) {
