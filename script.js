@@ -1,307 +1,36 @@
-// 获取工作区元素
-const textarea = document.getElementById('workspace');
+/**
+ * DocStudio应用 - 协调脚本
+ * 
+ * 应用架构说明:
+ * - 组件系统: 所有主要功能已被封装为独立组件，保持单一职责原则
+ *   - Draft组件: 负责左侧工作区功能(文本编辑、AI建议、内容整理)
+ *   - Preview组件: 负责右侧编辑和预览功能(Markdown编辑和实时HTML预览)
+ *   - Publish组件: 负责HTML渲染和展示功能(HTML生成和iframe管理)
+ * 
+ * - 服务系统: 提供全局功能支持
+ *   - Settings服务: 管理全局API设置
+ *   - RightClickMenu服务: 处理右键菜单和上下文操作
+ *   - EventSystem: 提供事件发布/订阅机制，实现组件间松耦合通信
+ * 
+ * - 本脚本职责:
+ *   - 作为组件间的协调层，处理跨组件事务
+ *   - 管理Generate按钮功能(从Draft到Preview的内容转换)
+ *   - 管理Render按钮功能(从Preview到Publish的内容渲染)
+ */
 
-// 获取工作区开关元素
-const workspaceToggle = document.getElementById('workspace-toggle');
-
-// 记录AI建议是否启用
-let aiSuggestionsEnabled = localStorage.getItem('aiSuggestionsEnabled') !== 'false';
-
-// 初始化工作区开关状态
-workspaceToggle.checked = aiSuggestionsEnabled;
-
-// 工作区开关功能 - 控制AI建议
-workspaceToggle.addEventListener('change', function() {
-    // 保存AI建议状态
-    aiSuggestionsEnabled = this.checked;
-    localStorage.setItem('aiSuggestionsEnabled', aiSuggestionsEnabled);
-    
-    if (this.checked) {
-        console.log('AI建议已启用');
-    } else {
-        console.log('AI建议已禁用');
-        // 如果关闭AI建议时正在等待建议，取消它
-        if (suggestTimeout) {
-            clearTimeout(suggestTimeout);
-        }
-    }
-});
-
-// 自动保存功能和AI建议功能
-let saveTimeout;
-let suggestTimeout;
-let isWaitingForSuggestion = false;
-let loadingIndicator = null;
-
-// 当文本内容变化时保存并重置AI建议计时器
-textarea.addEventListener('input', function() {
-    // 自动保存逻辑
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(function() {
-        localStorage.setItem('workspaceContent', textarea.value);
-        console.log('内容已自动保存');
-    }, 500); // 500ms防抖，避免频繁保存
-    
-    // AI建议逻辑 - 仅在启用时执行
-    if (aiSuggestionsEnabled) {
-        clearTimeout(suggestTimeout);
-        
-        // 如果有正在显示的加载指示器，移除它
-        if (loadingIndicator) {
-            textarea.value = textarea.value.replace(loadingIndicator, '');
-            loadingIndicator = null;
-        }
-        
-        // 重置AI建议等待状态
-        isWaitingForSuggestion = false;
-        
-        // 如果文本不为空，设置新的计时器
-        if (textarea.value.trim() !== '') {
-            suggestTimeout = setTimeout(function() {
-                getAISuggestion();
-            }, 5000); // 5秒后获取AI建议
-        }
-    }
-});
-
-// 获取AI建议
-async function getAISuggestion() {
-    // 如果AI建议已禁用，则直接返回
-    if (!aiSuggestionsEnabled) return;
-    
-    // 检查是否已经处于等待状态，避免重复请求
-    if (isWaitingForSuggestion) return;
-    isWaitingForSuggestion = true;
-    
-    // 获取设置
-    const savedSettings = localStorage.getItem('APISettings');
-    if (!savedSettings) {
-        console.log('未找到API设置，无法获取建议');
-        isWaitingForSuggestion = false;
-        return;
-    }
-    
-    const settings = JSON.parse(savedSettings);
-    const endpoint = settings.apiEndpoint;
-    const apiKey = settings.apiKey;
-    const model = settings.model;
-    
-    if (!endpoint || !apiKey || !model) {
-        console.log('API设置不完整，无法获取建议');
-        isWaitingForSuggestion = false;
-        return;
-    }
-    
-    // 获取当前光标位置
-    const cursorPosition = textarea.selectionStart;
-    const text = textarea.value;
-    
-    // 添加加载指示器
-    loadingIndicator = "\n\n正在生成AI建议...";
-    textarea.value = textarea.value + loadingIndicator;
-    
-    try {
-        // 发送API请求
-        const response = await fetch(`${endpoint}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    { role: "system", content: "你是一个助手，根据用户输入的文本，只提出1个相关的后续问题或建议帮助用户完善文档，简短直接，不要解释。" },
-                    { role: "user", content: text }
-                ],
-                max_tokens: parseInt(settings.maxTokens) || 100,
-                temperature: parseFloat(settings.temperature) || 0.7
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('API请求失败');
-        }
-        
-        const data = await response.json();
-        
-        // 移除加载指示器
-        textarea.value = textarea.value.replace(loadingIndicator, '');
-        loadingIndicator = null;
-        
-        // 添加AI建议
-        const suggestion = data.choices[0].message.content;
-        const formattedSuggestion = "\n\n--- AI建议 ---\n" + suggestion + "\n-------------";
-        
-        textarea.value = textarea.value + formattedSuggestion;
-        
-        // 恢复光标位置
-        textarea.selectionStart = cursorPosition;
-        textarea.selectionEnd = cursorPosition;
-        textarea.focus();
-        
-    } catch (error) {
-        console.error('获取AI建议时出错:', error);
-        
-        // 移除加载指示器
-        textarea.value = textarea.value.replace(loadingIndicator, '');
-        loadingIndicator = null;
-        
-        // 错误提示
-        const errorMessage = "\n\n--- 无法获取AI建议 ---";
-        textarea.value = textarea.value + errorMessage;
-        
-        // 3秒后自动移除错误消息
-        setTimeout(() => {
-            textarea.value = textarea.value.replace(errorMessage, '');
-        }, 3000);
-        
-    } finally {
-        isWaitingForSuggestion = false;
-    }
-}
-
-// 加载保存的文本内容
-function loadWorkspaceContent() {
-    const savedContent = localStorage.getItem('workspaceContent');
-    if (savedContent !== null) {
-        textarea.value = savedContent;
-    }
-}
-
-// 为右侧输入框和预览区添加变量和功能
-const displayspace = document.getElementById('displayspace');
-const markdownPreview = document.getElementById('markdown-preview');
-const displayspaceToggle = document.getElementById('displayspace-toggle');
-let saveTimeoutRight;
-let markdownRenderTimeout;
-let isUpdatingDisplayspace = false; // 防止循环更新
-let isUpdatingPreview = false; // 防止循环更新
-
-// 初始化TurndownService (HTML转Markdown)
-const turndownService = new TurndownService({
-    headingStyle: 'atx',
-    codeBlockStyle: 'fenced',
-    emDelimiter: '*'
-});
-
-// 设置marked选项
-marked.setOptions({
-    breaks: true, // 换行符转换为<br>
-    gfm: true,    // 使用GitHub风格Markdown
-    sanitize: false // 不转义HTML
-});
-
-// 自动保存右侧文本内容
-displayspace.addEventListener('input', function() {
-    if (isUpdatingDisplayspace) return; // 避免循环触发
-    
-    clearTimeout(saveTimeoutRight);
-    saveTimeoutRight = setTimeout(function() {
-        const content = displayspace.value;
-        localStorage.setItem('displayspaceContent', content);
-        console.log('右侧显示区域内容已自动保存');
-        
-        // 如果自动渲染开启，则更新预览
-        if (displayspaceToggle.checked && !isUpdatingPreview) {
-            updateMarkdownPreview(content);
-        }
-    }, 500); // 500ms防抖，避免频繁保存
-});
-
-// 监听预览区域的修改
-markdownPreview.addEventListener('input', function() {
-    if (isUpdatingPreview) return; // 避免循环触发
-    
-    clearTimeout(markdownRenderTimeout);
-    markdownRenderTimeout = setTimeout(function() {
-        // 使用turndown将HTML转换回Markdown
-        isUpdatingDisplayspace = true;
-        const html = markdownPreview.innerHTML;
-        try {
-            const markdown = turndownService.turndown(html);
-            displayspace.value = markdown;
-            localStorage.setItem('displayspaceContent', markdown);
-            console.log('从预览区更新了Markdown内容');
-        } catch (e) {
-            console.error('HTML转Markdown出错:', e);
-        }
-        isUpdatingDisplayspace = false;
-    }, 500);
-});
-
-// 更新Markdown预览区域
-function updateMarkdownPreview(markdown) {
-    if (!markdown) return;
-    
-    isUpdatingPreview = true;
-    try {
-        const html = marked.parse(markdown);
-        markdownPreview.innerHTML = html;
-    } catch (e) {
-        console.error('Markdown渲染出错:', e);
-        markdownPreview.innerHTML = `<p style="color: red;">Markdown渲染出错: ${e.message}</p>`;
-    }
-    isUpdatingPreview = false;
-}
-
-// 自动渲染开关功能
-displayspaceToggle.addEventListener('change', function() {
-    const isAutoRenderEnabled = this.checked;
-    
-    // 保存状态到localStorage
-    localStorage.setItem('autoRenderEnabled', isAutoRenderEnabled);
-    
-    if (isAutoRenderEnabled) {
-        // 开启自动渲染，显示预览区域，隐藏文本区域
-        displayspace.style.display = 'none';
-        markdownPreview.style.display = 'block';
-        // 更新预览内容
-        updateMarkdownPreview(displayspace.value);
-        // 聚焦预览区域
-        markdownPreview.focus();
-    } else {
-        // 关闭自动渲染，显示文本区域，隐藏预览区域
-        displayspace.style.display = 'block';
-        markdownPreview.style.display = 'none';
-        // 聚焦文本区域
-        displayspace.focus();
-    }
-});
-
-// 加载右侧保存的文本内容和渲染状态
-function loadDisplayspaceContent() {
-    // 加载文本内容
-    const savedContent = localStorage.getItem('displayspaceContent');
-    if (savedContent !== null) {
-        displayspace.value = savedContent;
-    }
-    
-    // 加载自动渲染状态
-    const autoRenderEnabled = localStorage.getItem('autoRenderEnabled') === 'true';
-    displayspaceToggle.checked = autoRenderEnabled;
-    
-    // 根据状态设置显示
-    if (autoRenderEnabled) {
-        displayspace.style.display = 'none';
-        markdownPreview.style.display = 'block';
-        updateMarkdownPreview(savedContent || '');
-    } else {
-        displayspace.style.display = 'block';
-        markdownPreview.style.display = 'none';
-    }
-}
-
-// 为中间的generate按钮添加功能
+// =============================================================================
+// Generate功能 - 将Draft内容转换为Markdown文档
+// =============================================================================
 const generateBtn = document.getElementById('markdown-button');
 let isGenerating = false;
 
-// 点击生成按钮事件
+// Generate按钮点击事件处理
 generateBtn.addEventListener('click', async function() {
     // 防止重复点击
     if (isGenerating) return;
     
-    const workspaceContent = textarea.value.trim();
+    // 使用Draft组件获取内容
+    const workspaceContent = Draft.getContent().trim();
     if (!workspaceContent) {
         alert('请在左侧输入框中输入一些内容');
         return;
@@ -331,7 +60,14 @@ generateBtn.addEventListener('click', async function() {
         generateBtn.textContent = 'Generating...';
         
         // 显示加载状态
-        displayspace.value = "正在生成文档，请稍候...";
+        Preview.setContent("正在生成文档，请稍候...");
+        
+        // 发布生成开始事件
+        if (window.EventSystem) {
+            EventSystem.publish('generate:started', {
+                sourceContent: workspaceContent
+            });
+        }
         
         // 发送API请求
         const response = await fetch(`${endpoint}/chat/completions`, {
@@ -362,16 +98,29 @@ generateBtn.addEventListener('click', async function() {
         }
         
         const data = await response.json();
+        const generatedContent = data.choices[0].message.content;
         
-        // 显示生成的Markdown文档
-        displayspace.value = data.choices[0].message.content;
+        // 使用Preview组件显示生成的Markdown文档
+        Preview.setContent(generatedContent);
         
-        // 自动保存生成的内容
-        localStorage.setItem('displayspaceContent', displayspace.value);
+        // 发布生成完成事件
+        if (window.EventSystem) {
+            EventSystem.publish('generate:completed', {
+                sourceContent: workspaceContent,
+                generatedContent: generatedContent
+            });
+        }
         
     } catch (error) {
         console.error('生成文档时出错:', error);
-        displayspace.value = `生成文档时出错: ${error.message || '未知错误'}`;
+        Preview.setContent(`生成文档时出错: ${error.message || '未知错误'}`);
+        
+        // 发布错误事件
+        if (window.EventSystem) {
+            EventSystem.publish('generate:error', {
+                error: error.message || '未知错误'
+            });
+        }
     } finally {
         // 恢复按钮状态
         isGenerating = false;
@@ -380,17 +129,20 @@ generateBtn.addEventListener('click', async function() {
     }
 });
 
-// 为右侧输入框上方的render按钮添加功能
-const displayspaceBtn = document.getElementById('displayspace-btn');
-const fullscreenContainer = document.getElementById('fullscreenContainer');
-const renderFrame = document.getElementById('renderFrame');
-const closeIframeBtn = document.getElementById('closeIframeBtn');
-const openNewTabBtn = document.getElementById('openNewTabBtn');
+// =============================================================================
+// Render功能 - 将Preview内容渲染为HTML
+// =============================================================================
+const renderBtn = document.getElementById('displayspace-btn');
+let isRendering = false;
 
-// 渲染HTML内容到iframe
-displayspaceBtn.addEventListener('click', async function() {
-    const content = displayspace.value.trim();
-    if (!content) {
+// Render按钮点击事件处理
+renderBtn.addEventListener('click', async function() {
+    // 防止重复点击
+    if (isRendering) return;
+    
+    // 使用Preview组件获取内容
+    const displayspaceContent = Preview.getContent().trim();
+    if (!displayspaceContent) {
         alert('请先在右侧输入框中输入内容');
         return;
     }
@@ -403,604 +155,43 @@ displayspaceBtn.addEventListener('click', async function() {
     }
     
     const settings = JSON.parse(savedSettings);
-    const endpoint = settings.apiEndpoint;
-    const apiKey = settings.apiKey;
-    const model = settings.model;
-    
-    if (!endpoint || !apiKey || !model) {
+    if (!settings.apiEndpoint || !settings.apiKey || !settings.model) {
         alert('API设置不完整，请检查设置');
         return;
     }
     
     try {
-        // 显示加载中状态
-        const loadingHTML = `
-            <html>
-            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#f5f5f5;">
-                <div style="text-align:center">
-                    <h2>正在生成HTML...</h2>
-                    <p>AI正在将内容转换为HTML格式，请稍候</p>
-                </div>
-            </body>
-            </html>
-        `;
+        // 设置渲染状态
+        isRendering = true;
+        renderBtn.disabled = true;
+        renderBtn.textContent = 'Rendering...';
         
-        // 将loading内容写入iframe
-        const iframe = document.getElementById('renderFrame');
-        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-        iframeDocument.open();
-        iframeDocument.write(loadingHTML);
-        iframeDocument.close();
-        
-        // 显示全屏iframe (loading)
-        fullscreenContainer.style.display = 'flex';
-        
-        // 防止页面滚动
-        document.body.style.overflow = 'hidden';
-        
-        // 发送API请求
-        const response = await fetch(`${endpoint}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    { 
-                        role: "system", 
-                        content: "你是一个HTML生成专家。将用户提供的内容转换为格式精美的HTML网页。添加适当的CSS样式使页面美观。确保HTML结构完整，包含<html>、<head>和<body>标签，只生成html,不要说多余的话。" 
-                    },
-                    { 
-                        role: "user", 
-                        content: "请将以下内容转换为HTML网页格式,只生成html,不要说多余的话：\n\n" + content 
-                    }
-                ],
-                max_tokens: parseInt(settings.maxTokens) || 2048,
-                temperature: parseFloat(settings.temperature) || 0.7
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('API请求失败');
-        }
-        
-        const data = await response.json();
-        
-        // 获取生成的HTML
-        const generatedHTML = data.choices[0].message.content;
-        
-        // 将HTML内容写入iframe
-        iframeDocument.open();
-        iframeDocument.write(generatedHTML);
-        iframeDocument.close();
-        
-    } catch (error) {
-        console.error('生成HTML时出错:', error);
-        
-        // 显示错误信息
-        const errorHTML = `
-            <html>
-            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#ffebee;color:#b71c1c;">
-                <div style="text-align:center">
-                    <h2>生成HTML时出错</h2>
-                    <p>${error.message || '未知错误'}</p>
-                </div>
-            </body>
-            </html>
-        `;
-        
-        const iframe = document.getElementById('renderFrame');
-        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-        iframeDocument.open();
-        iframeDocument.write(errorHTML);
-        iframeDocument.close();
-    }
-});
-
-// 关闭iframe
-closeIframeBtn.addEventListener('click', function() {
-    fullscreenContainer.style.display = 'none';
-    document.body.style.overflow = '';
-});
-
-// 在新标签页打开
-openNewTabBtn.addEventListener('click', function() {
-    const iframe = document.getElementById('renderFrame');
-    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-    const htmlContent = iframeDocument.documentElement.outerHTML;
-    
-    const newTab = window.open();
-    newTab.document.write(htmlContent);
-    newTab.document.close();
-});
-
-// 整理按钮功能 - 流式输出精简内容
-const workspaceBtn = document.getElementById('workspace-btn');
-let isStreamingContent = false;
-let originalContent = ''; // 存储原始内容
-let controller = null; // AbortController 用于取消流式请求
-let editDetectionTimeout = null; // 用于检测用户编辑的超时
-let buttonState = 'ORGANIZE'; // 按钮状态: ORGANIZE, STOP, REVERT
-
-// 当用户开始编辑文本时，重置按钮状态
-textarea.addEventListener('input', function() {
-    // 如果按钮状态是回退，则重置为整理
-    if (buttonState === 'REVERT') {
-        buttonState = 'ORGANIZE';
-        workspaceBtn.textContent = '整理';
-    }
-    
-    // 重置其他编辑相关逻辑...
-    // 原有的输入事件处理逻辑保持不变...
-});
-
-// 整理按钮的点击事件处理
-workspaceBtn.addEventListener('click', async function() {
-    // 根据按钮当前状态执行不同操作
-    switch (buttonState) {
-        case 'ORGANIZE': // 整理功能
-            await organizeContent();
-            break;
-        case 'STOP': // 停止功能
-            stopOrganizing();
-            break;
-        case 'REVERT': // 回退功能
-            revertContent();
-            break;
-    }
-});
-
-// 整理内容的功能
-async function organizeContent() {
-    const content = textarea.value.trim();
-    if (!content) {
-        alert('请先在输入框中输入一些内容');
-        return;
-    }
-    
-    // 获取API设置
-    const savedSettings = localStorage.getItem('APISettings');
-    if (!savedSettings) {
-        alert('请先在设置中配置API信息');
-        return;
-    }
-    
-    const settings = JSON.parse(savedSettings);
-    const endpoint = settings.apiEndpoint;
-    const apiKey = settings.apiKey;
-    const model = settings.model;
-    
-    if (!endpoint || !apiKey || !model) {
-        alert('API设置不完整，请检查设置');
-        return;
-    }
-    
-    try {
-        // 保存原始内容用于可能的回退
-        originalContent = textarea.value;
-        
-        // 设置处理状态
-        isStreamingContent = true;
-        buttonState = 'STOP';
-        workspaceBtn.textContent = '停止';
-        
-        // 准备开始流式输出
-        textarea.value = "正在整理内容...\n";
-        
-        // 创建 AbortController 用于可能的取消
-        controller = new AbortController();
-        const signal = controller.signal;
-        
-        // 开始流式请求
-        const response = await fetch(`${endpoint}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    { 
-                        role: "system", 
-                        content: "你是一个文本整理专家。请对用户提供的内容进行精简和优化，识别并保留用户意图,文档类型和核心信息，以关键词,key:value的形式输出。不要添加额外解释，直接给出优化后的文本。" 
-                    },
-                    { 
-                        role: "user", 
-                        content: "请精简整理以下内容，保持核心信息不变：\n\n" + content 
-                    }
-                ],
-                max_tokens: parseInt(settings.maxTokens) || 2048,
-                temperature: parseFloat(settings.temperature) || 0.7,
-                stream: true // 启用流式输出
-            }),
-            signal // 添加信号用于可能的取消
-        });
-        
-        if (!response.ok) {
-            throw new Error('API请求失败');
-        }
-        
-        // 处理流式响应
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let resultText = '';
-        
-        try {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                        try {
-                            const data = JSON.parse(line.substring(6));
-                            if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-                                resultText += data.choices[0].delta.content;
-                                textarea.value = resultText;
-                                textarea.scrollTop = textarea.scrollHeight; // 自动滚动到底部
-                            }
-                        } catch (e) {
-                            console.error('解析流式数据时出错:', e);
-                        }
-                    } else if (line === 'data: [DONE]') {
-                        break;
-                    }
-                }
-            }
-            
-            // 自动保存整理后的内容
-            localStorage.setItem('workspaceContent', resultText);
-            
-            // 整理完成后，设置按钮为回退状态
-            buttonState = 'REVERT';
-            workspaceBtn.textContent = '回退';
-            
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.log('整理过程被用户中断');
-                // 用户中断，设置按钮为回退状态
-                buttonState = 'REVERT';
-                workspaceBtn.textContent = '回退';
-            } else {
-                throw error; // 重新抛出其他错误
-            }
+        // 直接调用Publish组件的render方法
+        if (window.Publish) {
+            await Publish.render(displayspaceContent);
+        } else {
+            throw new Error('Publish组件未初始化');
         }
         
     } catch (error) {
-        console.error('整理内容时出错:', error);
-        if (error.name !== 'AbortError') { // 只有在非用户中断的错误情况下显示错误信息
-            textarea.value = `整理内容时出错: ${error.message || '未知错误'}\n\n原始内容:\n${originalContent}`;
-            // 出错时，设置按钮为回退状态
-            buttonState = 'REVERT';
-            workspaceBtn.textContent = '回退';
-        }
+        console.error('HTML渲染出错:', error);
+        alert('HTML渲染出错: ' + (error.message || '未知错误'));
+        
     } finally {
-        // 清理状态
-        isStreamingContent = false;
-        controller = null;
+        // 恢复按钮状态
+        isRendering = false;
+        renderBtn.disabled = false;
+        renderBtn.textContent = 'render';
     }
-}
+});
 
-// 停止整理过程
-function stopOrganizing() {
-    if (controller) {
-        controller.abort(); // 取消正在进行的请求
-    }
-    // 停止后更新按钮状态 - 在abort处理程序中会更新为回退状态
-}
-
-// 回退到原始内容
-function revertContent() {
-    textarea.value = originalContent;
-    localStorage.setItem('workspaceContent', originalContent); // 更新保存的内容
-    
-    // 重置为整理按钮
-    buttonState = 'ORGANIZE';
-    workspaceBtn.textContent = '整理';
-}
-
-// 右键菜单功能
-const contextMenu = document.getElementById('contextMenu');
-let activeTextarea = null;
-let cursorPosition = 0; // 记录光标位置
-
-// 为textarea添加右键菜单事件
-function addContextMenuListeners(textareaElement) {
-    // 右键点击显示菜单
-    textareaElement.addEventListener('contextmenu', function(event) {
-        event.preventDefault(); // 阻止默认右键菜单
-        activeTextarea = textareaElement; // 记录当前活动的文本框
-        
-        // 检查是否有选中的文本
-        const selectedText = textareaElement.value.substring(
-            textareaElement.selectionStart, 
-            textareaElement.selectionEnd
-        );
-        
-        // 记录光标位置
-        cursorPosition = textareaElement.selectionStart;
-        // 如果没有选中，则光标设为文本末尾
-        if (cursorPosition === undefined || cursorPosition === null) {
-            cursorPosition = textareaElement.value.length;
-        }
-        
-        // 获取点击位置相对于视口的坐标
-        const x = event.clientX;
-        const y = event.clientY;
-        
-        // 显示菜单并定位
-        showContextMenu(x, y, selectedText);
-    });
-}
-
-// 显示右键菜单
-function showContextMenu(x, y, selectedText) {
-    // 设置菜单位置
-    contextMenu.style.left = `${x}px`;
-    contextMenu.style.top = `${y}px`;
-    
-    // 显示菜单
-    contextMenu.style.display = 'block';
-    
-    // 防止菜单超出视口
-    const menuRect = contextMenu.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // 如果菜单底部超出视口，向上移动
-    if (menuRect.bottom > viewportHeight) {
-        contextMenu.style.top = `${y - menuRect.height}px`;
-    }
-    
-    // 如果菜单右侧超出视口，向左移动
-    if (menuRect.right > viewportWidth) {
-        contextMenu.style.left = `${x - menuRect.width}px`;
-    }
-    
-    // 如果有选中文本，在输入框中添加提示
-    const input = document.getElementById('contextMenuInput');
-    if (selectedText && selectedText.trim().length > 0) {
-        input.placeholder = `针对选中的文本回答...`;
-    } else {
-        input.placeholder = `在这里输入...`;
-    }
-    
-    // 自动聚焦到输入框
-    setTimeout(() => {
-        input.focus();
-    }, 10);
-}
-
-
-// 为右键菜单中的输入框添加回车键事件
-// contextMenuInput.addEventListener('keydown', async function(event) {
-//     // 只有当不在输入法组合状态时才处理回车键事件
-//     if (event.key === 'Enter' && !isIMEComposing) {
-//         const inputText = this.value.trim();
-//         // 保存当前活动的文本区域引用，因为hideContextMenu会清空这些状态
-//         const currentTextarea = activeTextarea;
-//         const referenceText = currentTextarea ? currentTextarea.value : '';
-        
-//         // 立即隐藏菜单并清空内容
-//         hideContextMenu();
-        
-//         // 如果有有效输入和文本区域，在后台生成AI回答
-//         if (inputText && currentTextarea) {
-//             // 生成AI回答
-//             await generateContextMenuResponse(inputText, referenceText);
-//         }
-//     }
-// });
-
-// 根据右键菜单输入框内容生成AI回答
-async function generateContextMenuResponse(inputText, referenceText) {
-    if (!inputText || !referenceText) return;
-    
-    // 检查是否有选中的文本
-    const selectedText = activeTextarea.value.substring(
-        activeTextarea.selectionStart, 
-        activeTextarea.selectionEnd
-    ).trim();
-    
-    // 决定使用哪段文本作为输入 - 如果有选中文本则优先使用
-    let textForAI = referenceText;
-    let contextPrompt = "";
-    
-    if (selectedText.length > 0) {
-        textForAI = selectedText;
-        contextPrompt = "用户选择了以下文本进行提问：\n\n" + selectedText + "\n\n";
-    }
-    
-    // 获取API设置
-    const savedSettings = localStorage.getItem('APISettings');
-    if (!savedSettings) {
-        console.log('未找到API设置，无法获取AI回答');
-        return;
-    }
-    
-    const settings = JSON.parse(savedSettings);
-    const endpoint = settings.apiEndpoint;
-    const apiKey = settings.apiKey;
-    const model = settings.model;
-    
-    if (!endpoint || !apiKey || !model) {
-        console.log('API设置不完整，无法获取AI回答');
-        return;
-    }
-    
-    // 左右文本框使用不同的插入逻辑
-    if (activeTextarea === textarea) {
-        // 左侧文本框 - 始终在末尾添加内容
-        activeTextarea.focus();
-        
-        // 将光标移至文本末尾
-        const endPosition = activeTextarea.value.length;
-        activeTextarea.setSelectionRange(endPosition, endPosition);
-        
-        // 使用execCommand插入提示文字，这样可以支持撤销操作
-        const promptText = "\n\n--- AI回答(问题: " + inputText + ") ---\n";
-        document.execCommand('insertText', false, promptText);
-        
-        // 占位符
-        const placeholder = "正在生成回答...";
-        document.execCommand('insertText', false, placeholder);
-        
-        // 记住占位符的开始和结束位置，以便之后替换
-        const placeholderStart = endPosition + promptText.length;
-        const placeholderEnd = placeholderStart + placeholder.length;
-        
-        try {
-            // API请求使用选中文本
-            const response = await fetch(`${endpoint}/chat/completions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { 
-                            role: "system", 
-                            content: "你是一个助手。用户会给你一个问题，然后提供一段参考文本。你需要主要基于问题给出回答，同时把参考文本作为背景信息考虑进去。回答要简洁、专业。" 
-                        },
-                        { 
-                            role: "user", 
-                            content: contextPrompt + "问题: " + inputText + "\n\n参考文本: " + textForAI 
-                        }
-                    ],
-                    max_tokens: parseInt(settings.maxTokens) || 500,
-                    temperature: parseFloat(settings.temperature) || 0.7
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('API请求失败');
-            }
-            
-            const data = await response.json();
-            const aiResponse = data.choices[0].message.content + "\n-------------";
-            
-            // 替换占位符为AI回答（使用execCommand以支持撤销）
-            activeTextarea.focus();
-            activeTextarea.setSelectionRange(placeholderStart, placeholderEnd);
-            document.execCommand('insertText', false, aiResponse);
-            
-            // 设置光标位置在回答之后
-            const newCursorPosition = placeholderStart + aiResponse.length;
-            activeTextarea.setSelectionRange(newCursorPosition, newCursorPosition);
-            
-            // 自动保存内容
-            localStorage.setItem('workspaceContent', textarea.value);
-            
-        } catch (error) {
-            console.error('获取AI回答时出错:', error);
-            activeTextarea.focus();
-            activeTextarea.setSelectionRange(placeholderStart, placeholderEnd);
-            document.execCommand('insertText', false, "无法获取AI回答: " + error.message + "\n-------------");
-        }
-    } else {
-        // 右侧文本框 - 在光标位置插入内容
-        activeTextarea.focus();
-        activeTextarea.setSelectionRange(cursorPosition, cursorPosition);
-        
-        // 使用execCommand插入提示文字
-        const promptText = "\n\n--- AI回答(问题: " + inputText + ") ---\n";
-        document.execCommand('insertText', false, promptText);
-        
-        // 为占位符记录新的插入点
-        const placeholderPosition = cursorPosition + promptText.length;
-        const placeholder = "正在生成回答...";
-        document.execCommand('insertText', false, placeholder);
-        
-        // 记住占位符的开始和结束位置
-        const placeholderStart = placeholderPosition;
-        const placeholderEnd = placeholderStart + placeholder.length;
-        
-        try {
-            const response = await fetch(`${endpoint}/chat/completions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { 
-                            role: "system", 
-                            content: "你是一个助手。用户会给你一个问题，然后提供一段参考文本。你需要主要基于问题给出回答，同时把参考文本作为背景信息考虑进去。回答要简洁、专业。" 
-                        },
-                        { 
-                            role: "user", 
-                            content: contextPrompt + "问题: " + inputText + "\n\n参考文本: " + textForAI 
-                        }
-                    ],
-                    max_tokens: parseInt(settings.maxTokens) || 500,
-                    temperature: parseFloat(settings.temperature) || 0.7
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('API请求失败');
-            }
-            
-            const data = await response.json();
-            const aiResponse = data.choices[0].message.content + "\n-------------";
-            
-            // 替换占位符为AI回答
-            activeTextarea.focus();
-            activeTextarea.setSelectionRange(placeholderStart, placeholderEnd);
-            document.execCommand('insertText', false, aiResponse);
-            
-            // 设置光标位置在回答之后
-            const newCursorPosition = placeholderStart + aiResponse.length;
-            activeTextarea.setSelectionRange(newCursorPosition, newCursorPosition);
-            
-            // 自动保存内容
-            localStorage.setItem('displayspaceContent', displayspace.value);
-            
-        } catch (error) {
-            console.error('获取AI回答时出错:', error);
-            activeTextarea.focus();
-            activeTextarea.setSelectionRange(placeholderStart, placeholderEnd);
-            document.execCommand('insertText', false, "无法获取AI回答: " + error.message + "\n-------------");
-        }
-    }
-}
-
-// 页面加载时加载设置和内容
 document.addEventListener('DOMContentLoaded', function() {
-    loadWorkspaceContent();
-    loadDisplayspaceContent();
+    // 组件会在main.js中自动初始化，这里只需要处理组件间的协作关系
     
-    
-    // 为Markdown预览区添加右键菜单
-    markdownPreview.addEventListener('contextmenu', function(event) {
-        event.preventDefault(); // 阻止默认右键菜单
-        
-        // 记录当前活动元素为预览区
-        activeTextarea = displayspace; // 实际使用右侧文本框来处理输入
-        
-        // 记录预览区选中的文本
-        const selection = window.getSelection();
-        const selectedText = selection.toString();
-        
-        // 记录光标位置（在原始Markdown中的对应位置）
-        // 这里简化处理，只考虑添加到文本末尾
-        cursorPosition = displayspace.value.length;
-        
-        // 获取点击位置坐标
-        const x = event.clientX;
-        const y = event.clientY;
-        
-        // 显示菜单
-        showContextMenu(x, y, selectedText);
-    });
+    // 订阅应用就绪事件
+    if (window.EventSystem) {
+        EventSystem.subscribe('application:ready', (data) => {
+            console.log('DocStudio 组件化应用初始化完成', data.timestamp);
+        });
+    }
 });

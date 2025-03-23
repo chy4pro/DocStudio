@@ -57,6 +57,7 @@ This is a completely serverless application—all API keys and content are store
 - ✅ Customizable API settings
 - ✅ HTML preview
 - ✅ Markdown preview with real-time editing
+- ✅ Component-based architecture
 
 #### Future Features
 - 🔄 Multi-language support
@@ -138,6 +139,7 @@ DocStudio 是一款基于人工智能的文档编辑和格式化工具，帮助�
 - ✅ 自定义 API 设置
 - ✅ HTML 预览
 - ✅ Markdown实时预览与编辑
+- ✅ 组件化架构
 
 #### 未来功能
 - 🔄 多语言支持
