@@ -1,0 +1,279 @@
+/**
+ * DocStudio 共享基础样式
+ * 
+ * 此文件包含在所有模式间共享的基础样式
+ * 模式特定样式应在各模式的样式文件中定义
+ */
+
+/* 基础重置样式 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    color: #333;
+}
+
+/* 通用表单元素样式 */
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+textarea, input[type="text"], input[type="password"], input[type="number"] {
+    font-family: inherit;
+    font-size: inherit;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
+    outline: 1px solid #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* 设置弹窗共享样式 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* 全屏iframe容器共享样式 */
+.fullscreen-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    flex-direction: column;
+}
+
+.iframe-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.iframe-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+.iframe-container iframe {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: white;
+}
+
+.iframe-btn {
+    background: #333;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 5px 15px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.iframe-btn:hover {
+    background: #555;
+}
+
+/* 右键菜单共享样式 */
+.context-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 150px;
+}
+
+.context-menu .menu-content {
+    padding: 10px;
+}
+
+/* 开关样式 */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #4CAF50;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* Markdown 预览区域共享样式 */
+.markdown-preview {
+    font-size: 14px;
+    line-height: 1.6;
+    background-color: white;
+}
+
+.markdown-preview h1 {
+    font-size: 24px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.markdown-preview h2 {
+    font-size: 20px;
+    margin-top: 14px;
+    margin-bottom: 7px;
+}
+
+.markdown-preview h3 {
+    font-size: 18px;
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.markdown-preview h4, .markdown-preview h5, .markdown-preview h6 {
+    font-size: 16px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.markdown-preview p {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.markdown-preview ul, .markdown-preview ol {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.markdown-preview blockquote {
+    border-left: 4px solid #ccc;
+    margin: 8px 0;
+    padding-left: 16px;
+    color: #555;
+}
+
+.markdown-preview code {
+    font-family: monospace;
+    padding: 2px 4px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+}
+
+.markdown-preview pre {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+.markdown-preview pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+}
+
+.markdown-preview table, .markdown-preview th, .markdown-preview td {
+    border: 1px solid #ccc;
+}
+
+.markdown-preview th, .markdown-preview td {
+    padding: 8px;
+    text-align: left;
+}
+
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+}

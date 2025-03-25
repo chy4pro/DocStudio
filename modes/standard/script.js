@@ -1,22 +1,31 @@
 /**
- * DocStudio应用 - 协调脚本
+ * DocStudio - 标准模式脚本
  * 
- * 应用架构说明:
- * - 组件系统: 所有主要功能已被封装为独立组件，保持单一职责原则
- *   - Draft组件: 负责左侧工作区功能(文本编辑、AI建议、内容整理)
- *   - Preview组件: 负责右侧编辑和预览功能(Markdown编辑和实时HTML预览)
- *   - Publish组件: 负责HTML渲染和展示功能(HTML生成和iframe管理)
- * 
- * - 服务系统: 提供全局功能支持
- *   - Settings服务: 管理全局API设置
- *   - RightClickMenu服务: 处理右键菜单和上下文操作
- *   - EventSystem: 提供事件发布/订阅机制，实现组件间松耦合通信
- * 
- * - 本脚本职责:
- *   - 作为组件间的协调层，处理跨组件事务
- *   - 管理Generate按钮功能(从Draft到Preview的内容转换)
- *   - 管理Render按钮功能(从Preview到Publish的内容渲染)
+ * 处理标准模式的特定功能和组件协调
+ * 基于原有的script.js改造，适配多模式框架
  */
+
+// =============================================================================
+// 标准模式初始化
+// =============================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DocStudio 标准模式初始化');
+    
+    // 注册当前模式
+    if (window.ModeManager) {
+        // 确保模式管理器知道当前模式
+        ModeManager.currentMode = 'standard';
+    } else {
+        console.error('模式管理器未加载，标准模式可能无法正常工作');
+    }
+    
+    // 订阅应用就绪事件
+    if (window.EventSystem) {
+        EventSystem.subscribe('application:ready', (data) => {
+            console.log('DocStudio 标准模式就绪', data.timestamp);
+        });
+    }
+});
 
 // =============================================================================
 // Generate功能 - 将Draft内容转换为Markdown文档
@@ -182,16 +191,5 @@ renderBtn.addEventListener('click', async function() {
         isRendering = false;
         renderBtn.disabled = false;
         renderBtn.textContent = 'render';
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    // 组件会在main.js中自动初始化，这里只需要处理组件间的协作关系
-    
-    // 订阅应用就绪事件
-    if (window.EventSystem) {
-        EventSystem.subscribe('application:ready', (data) => {
-            console.log('DocStudio 组件化应用初始化完成', data.timestamp);
-        });
     }
 });

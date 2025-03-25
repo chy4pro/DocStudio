@@ -2,115 +2,80 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>DocStudio</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- 添加Markdown库 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <title>DocStudio - 模式选择</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading {
+            margin: 20px;
+        }
+        .mode-selector {
+            margin-top: 20px;
+            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <h1>DocStudio</h1>
-            <a href="about.html" class="about-btn">📖 使用帮助</a>
-        </div>
-        <button class="settings-btn">⚙️ 设置</button>
-    </div>
-    <div class="desktop-container">
-        <div class="editor-container">
-            <div class="editor-header">
-                <button id="workspace-btn" class="editor-btn">整理</button>
-                <span class="spacer"></span>
-                <div class="toggle-container">
-                    <span class="toggle-label">AI建议</span>
-                    <label class="toggle-switch" title="开启/关闭AI自动建议功能">
-                        <input type="checkbox" id="workspace-toggle">
-                        <span class="toggle-slider" title="开启/关闭AI自动建议功能"></span>
-                    </label>
-                </div>
-            </div>
-            <textarea id="workspace" placeholder="请输入文本"></textarea>
-        </div>
-        <button id="markdown-button" class="markdown-btn">generate</button>
-        <div class="editor-container">
-            <div class="editor-header">
-                <div class="toggle-container">
-                    <label class="toggle-switch" title="开启/关闭自动渲染功能">
-                        <input type="checkbox" id="displayspace-toggle">
-                        <span class="toggle-slider" title="开启/关闭自动渲染功能"></span>
-                    </label>
-                    <span class="toggle-label">自动渲染</span>
-                </div>
-                <span class="spacer"></span>
-                <button id="displayspace-btn" class="editor-btn">render</button>
-            </div>
-            <textarea id="displayspace" placeholder="请输入文本"></textarea>
-            <div id="markdown-preview" class="markdown-preview" contenteditable="true"></div>
-        </div>
-    </div>
-    <!-- 全屏iframe显示 -->
-    <div id="fullscreenContainer" class="fullscreen-container">
-        <div class="iframe-toolbar">
-            <button id="openNewTabBtn" class="iframe-btn">在新标签页打开</button>
-            <button id="closeIframeBtn" class="iframe-btn">关闭</button>
-        </div>
-        <div class="iframe-container">
-            <iframe id="renderFrame"></iframe>
-        </div>
+    <h1>DocStudio</h1>
+    <div class="loading" id="loading">
+        <p>正在加载DocStudio...</p>
     </div>
     
-    <!-- 设置弹窗 -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>设置</h3>
-                <button class="close-btn" id="closeModal">×</button>
-            </div>
-            <div class="setting-item">
-                <label for="apiEndpoint">API接口地址</label>
-                <input type="text" id="apiEndpoint" placeholder="例如: https://api.example.com/v1">
-            </div>
-            <div class="setting-item">
-                <label for="apiKey">API Key</label>
-                <input type="password" id="apiKey" placeholder="输入您的API密钥">
-            </div>
-            <div class="setting-item">
-                <label for="model">模型名称</label>
-                <input type="text" id="model" placeholder="例如: gpt-3.5-turbo">
-            </div>
-            <div class="setting-item">
-                <label for="temperature">温度 (0-2)</label>
-                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
-                <span id="tempValue">0.7</span>
-            </div>
-            <div class="setting-item">
-                <label for="maxTokens">最大令牌数</label>
-                <input type="number" id="maxTokens" min="1" max="4096" value="2048">
-            </div>
-            <div class="setting-item" style="display: flex; gap: 10px;">
-                <button id="testAPI" style="flex: 1; padding: 8px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">测试连接</button>
-                <button id="saveSettings" style="flex: 1; padding: 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">保存设置</button>
-            </div>
-            <div id="testResult" style="margin-top: 10px; padding: 8px; display: none; border-radius: 4px; text-align: center;"></div>
-        </div>
+    <!-- 如果JavaScript禁用或重定向失败，显示手动模式选择 -->
+    <div class="mode-selector" id="mode-selector" style="display: none;">
+        <p>请选择使用模式：</p>
+        <button id="standard-mode">标准模式</button>
     </div>
-    
-    <!-- 右键菜单 -->
-    <div id="rightClickMenu" class="context-menu">
-        <div class="menu-content">
-            <input type="text" id="rightClickInput" placeholder="在这里输入...">
-        </div>
-    </div>
-    
-    <!-- 新的模块化系统 -->
-    <script src="js/events.js"></script>
-    <script src="js/services/Settings.js"></script>
-    <script src="js/services/RightClickMenu.js"></script>
-    <script src="js/components/Draft.js"></script>
-    <script src="js/components/Preview.js"></script>
-    <script src="js/components/Publish.js"></script>
-    <script src="js/main.js"></script>
-    <!-- 现有系统 -->
-    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 尝试检索用户首选模式
+            const preferredMode = localStorage.getItem('preferredMode') || 'standard';
+            
+            try {
+                // 重定向到相应模式
+                console.log('重定向到模式:', preferredMode);
+                window.location.href = `./modes/${preferredMode}/index.html`;
+                
+                // 设置超时，如果重定向未成功，显示手动选择
+                setTimeout(function() {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('mode-selector').style.display = 'block';
+                }, 2000);
+            } catch (error) {
+                console.error('重定向错误:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('mode-selector').style.display = 'block';
+            }
+            
+            // 手动模式选择按钮
+            document.getElementById('standard-mode').addEventListener('click', function() {
+                localStorage.setItem('preferredMode', 'standard');
+                window.location.href = './modes/standard/index.html';
+            });
+        });
+    </script>
 </body>
 </html>

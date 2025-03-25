@@ -4,6 +4,23 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DocStudio initialized with new module system');
 
     // Initialize services
+    // 初始化模式管理器
+    if (window.ModeManager) {
+        ModeManager.init();
+        console.log('ModeManager initialized');
+        
+        // 订阅模式管理器事件
+        EventSystem.subscribe('modeManager:initialized', () => {
+            console.log('ModeManager ready');
+        });
+        
+        EventSystem.subscribe('mode:changed', (data) => {
+            console.log('Mode changed to:', data.mode);
+        });
+    } else {
+        console.log('ModeManager not loaded, running in legacy mode');
+    }
+    
     if (window.EventSystem) {
         console.log('Event system ready');
     } else {

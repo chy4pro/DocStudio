@@ -1,0 +1,204 @@
+/**
+ * DocStudio - 标准模式样式
+ * 
+ * 本文件只包含标准模式特有的样式
+ * 共享样式已移至 base.css
+ */
+
+/* 标准模式布局 */
+body {
+    margin: 0;
+    padding: 15px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* 标准模式头部样式 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-left h1 {
+    margin: 0;
+}
+
+/* 按钮样式 */
+.settings-btn, .about-btn {
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.settings-btn:hover, .about-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.markdown-btn {
+    font-size: 18px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    align-self: center;
+    margin: 0 10px;
+}
+
+.markdown-btn:hover {
+    background-color: #f0f0f0;
+}
+
+/* 标准模式特有的布局样式 */
+.desktop-container {
+    display: flex;
+    gap: 15px;
+    flex-grow: 1;
+    height: 100%;
+}
+
+.editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    padding: 0 10px;
+    position: relative;
+}
+
+.editor-btn {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.spacer {
+    flex-grow: 1;
+}
+
+/* 开关容器和标签样式 */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.toggle-label {
+    font-size: 12px;
+    color: #444;
+}
+
+/* 开关样式 - 标准模式特有的外边距 */
+.toggle-switch {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.editor-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.editor-btn:hover {
+    background-color: #f0f0f0;
+}
+
+textarea {
+    flex-grow: 1;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    resize: none;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+h1, p {
+    margin: 10px;
+}
+
+h1 {
+    font-size: 18px;
+}
+
+/* 右键菜单样式 */
+.context-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 150px;
+}
+
+.context-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.context-menu .menu-content {
+    padding: 10px;
+}
+
+#contextMenuInput {
+    min-width: 150px;
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    /* 允许输入框自动增长 */
+    resize: horizontal;
+    overflow: hidden;
+    white-space: normal;
+}
+
+#contextMenuInput:focus {
+    outline: none;
+    border-color: #000;
+    border-width: 2px;
+}
+
+/* Markdown 预览区域样式 - 标准模式特有的样式 */
+.markdown-preview {
+    flex-grow: 1;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    overflow: auto;
+    display: none; /* 默认隐藏 - 标准模式特有 */
+}
+
+.markdown-preview:focus {
+    outline: 1px solid #4CAF50;
+}
