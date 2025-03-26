@@ -3,7 +3,7 @@ const Draft = {
     // 配置选项
     options: {
         container: '#draft-container',
-        textarea: '#workspace',
+        textareaId: 'workspace',  // 直接使用ID名，不含#前缀
         toggleButton: '#workspace-toggle',
         organizeButton: '#workspace-btn'
     },
@@ -33,6 +33,9 @@ const Draft = {
         
         // 初始化DOM引用
         this.initElements();
+        
+        // 创建文本区域
+        this.createTextArea();
         
         // 加载内部状态
         this.loadState();
@@ -85,15 +88,69 @@ const Draft = {
         const opt = this.options;
         this.elements = {
             container: document.querySelector(opt.container),
-            textarea: document.getElementById(opt.textarea.substring(1)), // 去掉#前缀
             toggleButton: document.getElementById(opt.toggleButton.substring(1)), // 去掉#前缀
             organizeButton: document.getElementById(opt.organizeButton.substring(1)) // 去掉#前缀
         };
         
         // 检查必要元素是否存在
-        if (!this.elements.textarea) {
-            console.error('Draft component: Required textarea element not found');
+        if (!this.elements.container) {
+            console.error('Draft component: Container element not found');
+            return;
         }
+        
+        // 查找锚点元素
+        this.elements.anchor = this.elements.container.querySelector('[data-role="textarea-container"]');
+        if (!this.elements.anchor) {
+            console.error('Draft component: Textarea container element not found');
+        }
+    },
+    
+    // 创建textarea元素
+    createTextArea: function() {
+        if (!this.elements.anchor) return;
+        
+        // 创建textarea元素
+        const textarea = document.createElement('textarea');
+        textarea.id = this.options.textareaId;  // 使用配置中的ID
+        textarea.className = 'draft-textarea'; // 添加类名
+        textarea.placeholder = '请输入文本';
+        
+        // 添加到锚点容器
+        this.elements.anchor.innerHTML = '';  // 清空锚点内容
+        this.elements.anchor.appendChild(textarea);
+        
+        // 保存引用
+        this.elements.textarea = textarea;
+        
+        // 绑定右键菜单处理
+        this.bindRightClickHandler();
+    },
+    
+    // 绑定右键菜单处理
+    bindRightClickHandler: function() {
+        if (!this.elements.textarea) return;
+        
+        this.elements.textarea.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            
+            // 获取选中的文本
+            const selectedText = this.elements.textarea.value.substring(
+                this.elements.textarea.selectionStart, 
+                this.elements.textarea.selectionEnd
+            );
+            
+            // 记录光标位置
+            const cursorPosition = this.elements.textarea.selectionStart;
+            
+            // 调用RightClickMenu服务显示菜单
+            if (window.RightClickMenu) {
+                RightClickMenu.showMenuAt(event.clientX, event.clientY, {
+                    activeTextarea: this.elements.textarea,
+                    cursorPosition: cursorPosition,
+                    selectedText: selectedText
+                });
+            }
+        });
     },
 
     // 加载状态

@@ -3,7 +3,7 @@ const Preview = {
     // 配置选项
     options: {
         container: '#preview-container',
-        textarea: '#displayspace',
+        textareaId: 'displayspace',  // 直接使用ID名，不含#前缀
         previewArea: '#markdown-preview',
         toggleButton: '#displayspace-toggle',
         renderButton: '#displayspace-btn'
@@ -30,6 +30,9 @@ const Preview = {
         // 初始化DOM引用
         this.initElements();
         
+        // 创建文本区域
+        this.createTextArea();
+        
         // 加载内部状态
         this.loadState();
         
@@ -41,6 +44,9 @@ const Preview = {
 
         // 初始化Marked设置
         this.initMarked();
+        
+        // 绑定右键菜单事件
+        this.bindRightClickHandlers();
         
         // 发布初始化完成事件
         if (window.EventSystem) {
@@ -59,18 +65,88 @@ const Preview = {
         const opt = this.options;
         this.elements = {
             container: document.querySelector(opt.container),
-            textarea: document.getElementById(opt.textarea.substring(1)), // 去掉#前缀
             previewArea: document.getElementById(opt.previewArea.substring(1)),
             toggleButton: document.getElementById(opt.toggleButton.substring(1)),
             renderButton: document.getElementById(opt.renderButton.substring(1))
         };
         
-        // 检查必要元素是否存在
-        if (!this.elements.textarea) {
-            console.error('Preview component: Required textarea element not found');
+        // 查找锚点元素
+        if (this.elements.container) {
+            this.elements.anchor = this.elements.container.querySelector('[data-role="textarea-container-preview"]');
         }
+        
+        if (!this.elements.anchor) {
+            console.error('Preview component: Textarea anchor element not found');
+        }
+        
         if (!this.elements.previewArea) {
             console.error('Preview component: Required preview area element not found');
+        }
+    },
+
+    // 创建textarea元素
+    createTextArea: function() {
+        if (!this.elements.anchor) return;
+        
+        // 创建textarea元素
+        const textarea = document.createElement('textarea');
+        textarea.id = this.options.textareaId;  // 使用配置中的ID
+        textarea.className = 'preview-textarea';
+        textarea.placeholder = '请输入文本';
+        
+        // 添加到锚点容器
+        this.elements.anchor.innerHTML = '';  // 清空锚点内容
+        this.elements.anchor.appendChild(textarea);
+        
+        // 保存引用
+        this.elements.textarea = textarea;
+    },
+    
+    // 绑定右键菜单事件处理
+    bindRightClickHandlers: function() {
+        // 绑定textarea的右键菜单
+        if (this.elements.textarea) {
+            this.elements.textarea.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                
+                // 获取选中的文本
+                const selectedText = this.elements.textarea.value.substring(
+                    this.elements.textarea.selectionStart, 
+                    this.elements.textarea.selectionEnd
+                );
+                
+                // 记录光标位置
+                const cursorPosition = this.elements.textarea.selectionStart;
+                
+                // 调用RightClickMenu服务显示菜单
+                if (window.RightClickMenu) {
+                    RightClickMenu.showMenuAt(event.clientX, event.clientY, {
+                        activeTextarea: this.elements.textarea,
+                        cursorPosition: cursorPosition,
+                        selectedText: selectedText
+                    });
+                }
+            });
+        }
+        
+        // 绑定预览区的右键菜单
+        if (this.elements.previewArea) {
+            this.elements.previewArea.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                
+                // 获取预览区域中选中的文本
+                const selection = window.getSelection();
+                const selectedText = selection.toString();
+                
+                // 调用RightClickMenu服务显示菜单
+                if (window.RightClickMenu) {
+                    RightClickMenu.showMenuAt(event.clientX, event.clientY, {
+                        activeTextarea: this.elements.textarea,
+                        cursorPosition: this.elements.textarea.value.length,  // 默认在末尾插入
+                        selectedText: selectedText
+                    });
+                }
+            });
         }
     },
 
@@ -342,6 +418,25 @@ const Preview = {
             this.renderMarkdown(this.elements.textarea.value);
         }
         return this;
+    },
+
+    // 公共API - 插入内容到指定位置
+    insertContentAt: function(content, position) {
+        if (!this.elements.textarea) return this;
+        
+        const currentContent = this.elements.textarea.value;
+        const pos = (position !== undefined) ? position : currentContent.length;
+        
+        const newContent = currentContent.substring(0, pos) + content + currentContent.substring(pos);
+        return this.setContent(newContent);
+    },
+    
+    // 公共API - 插入内容到光标位置
+    insertAtCursor: function(content) {
+        if (!this.elements.textarea) return this;
+        
+        const cursorPos = this.elements.textarea.selectionStart;
+        return this.insertContentAt(content, cursorPos);
     }
 };
 

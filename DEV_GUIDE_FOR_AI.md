@@ -92,7 +92,7 @@ DocStudio/
 
 ### Draft组件 (js/components/Draft.js)
 
-**功能**: 负责左侧工作区的所有功能
+**功能**: 负责左侧工作区的所有功能，现支持自主DOM管理
 
 **核心属性**:
 - `elements` - DOM元素引用
@@ -100,6 +100,9 @@ DocStudio/
 
 **关键方法**:
 - `init()` - 组件初始化
+- `initElements()` - 初始化DOM引用
+- `createTextArea()` - 动态创建并添加textarea元素
+- `bindRightClickHandler()` - 绑定右键菜单事件处理
 - `getContent()` - 获取编辑内容
 - `setContent(content)` - 设置编辑内容
 - `organizeContent()` - 内容整理功能
@@ -118,13 +121,14 @@ DocStudio/
 - `rightClickMenu:contentInserted` - 响应右键菜单内容插入
 
 **修改重点**:
+- 实现自主DOM管理: `createTextArea()` 和 `bindRightClickHandler()` 方法
 - 更改AI建议逻辑: `getAISuggestion()` 方法
 - 修改内容整理功能: `organizeContent()` 方法
 - 更改自动保存行为: `handleInput()` 方法
 
 ### Preview组件 (js/components/Preview.js)
 
-**功能**: 负责右侧预览区的Markdown编辑和预览
+**功能**: 负责右侧预览区的Markdown编辑和预览，现支持自主DOM管理
 
 **核心属性**:
 - `elements` - DOM元素引用
@@ -132,18 +136,27 @@ DocStudio/
 
 **关键方法**:
 - `init()` - 组件初始化
+- `initElements()` - 初始化DOM引用
+- `createTextArea()` - 动态创建并添加textarea元素
+- `bindRightClickHandlers()` - 为textarea和预览区绑定右键事件
 - `getContent()` - 获取预览内容
 - `setContent(content)` - 设置预览内容
 - `renderMarkdown(markdown)` - 将Markdown渲染为HTML
 - `toggleRenderMode(isEnabled)` - 切换编辑/预览模式
+- `insertContentAt(content, position)` - 在指定位置插入内容
+- `insertAtCursor(content)` - 在光标位置插入内容
 
 **事件发布**:
 - `preview:initialized` - 组件初始化完成
 - `preview:content-updated` - 内容更新时
+- `preview:content-saved` - 内容保存时
+- `preview:preview-updated` - 预览内容编辑更新时
 - `preview:markdown-rendered` - Markdown渲染完成时
+- `preview:render-mode-changed` - 渲染模式更改时
 - *注：render按钮功能已迁移至script.js*
 
 **修改重点**:
+- 实现自主DOM管理: `createTextArea()` 和 `bindRightClickHandlers()` 方法
 - 更改Markdown渲染逻辑: `renderMarkdown()` 方法
 - 修改预览模式切换: `toggleRenderMode()` 方法
 
@@ -223,23 +236,23 @@ DocStudio/
 
 ### RightClickMenu服务 (js/services/RightClickMenu.js)
 
-**功能**: 处理右键菜单和AI问答功能
+**功能**: 提供被动式右键菜单服务和AI问答功能，由组件主动调用
 
 **核心方法**:
-- `init()` - 服务初始化
-- `showMenu(x, y, targetElement)` - 显示右键菜单
+- `init()` - 服务初始化，只处理菜单UI相关
+- `showMenuAt(x, y, options)` - 公共API，供组件调用显示菜单
+- `showMenu(x, y, selectedText)` - 内部方法，显示右键菜单
 - `hideMenu()` - 隐藏右键菜单
-- `generateResponse(prompt, targetElement)` - 生成AI回答
+- `generateResponse(inputText, referenceText, currentTextarea)` - 生成AI回答
 
 **事件发布**:
-- `rightClickMenu:shown` - 菜单显示时
-- `rightClickMenu:hidden` - 菜单隐藏时
 - `rightClickMenu:responseGenerated` - 回答生成时
 - `rightClickMenu:contentInserted` - 内容插入时
+- `rightClickMenu:displayspaceUpdated` - 预览区内容更新时
 
 **修改重点**:
-- 更改右键菜单行为: `showMenu()` / `hideMenu()` 方法
-- 修改AI响应生成: `generateResponse()` 方法
+- 改为被动服务模式: 不再主动绑定元素，提供`showMenuAt()`API
+- 修改AI响应生成: `generateResponse()` 方法参数调整
 
 ### EventSystem (js/events.js)
 

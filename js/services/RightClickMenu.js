@@ -8,7 +8,7 @@ const RightClickMenu = {
     cursorPosition: 0, // 记录光标位置
     isIMEComposing: false, // 添加输入法组合状态跟踪
     
-    // 初始化右键菜单服务
+    // 初始化右键菜单服务 - 只处理菜单UI
     init: function() {
         // 获取并存储DOM元素引用
         this.elements = {
@@ -16,14 +16,20 @@ const RightClickMenu = {
             input: document.getElementById('rightClickInput'),
         };
 
-        // 绑定两个文本框的右键菜单
-        this.bindRightClickMenu(document.getElementById('workspace'));
-        this.bindRightClickMenu(document.getElementById('displayspace'));
-        
-        // 绑定Markdown预览区的右键菜单
-        this.bindMarkdownPreviewMenu(document.getElementById('markdown-preview'));
-        
+        // 只绑定菜单相关事件，不再直接绑定文本框
         this.bindEvents();
+        
+        console.log('RightClickMenu service initialized');
+    },
+    
+    // 提供公共API，供组件调用来显示菜单
+    showMenuAt: function(x, y, options) {
+        // options包含：activeTextarea, cursorPosition, selectedText等
+        this.activeTextarea = options.activeTextarea;
+        this.cursorPosition = options.cursorPosition || 0;
+        
+        // 显示菜单
+        this.showMenu(x, y, options.selectedText || '');
     },
     
     // 绑定Markdown预览区的右键菜单

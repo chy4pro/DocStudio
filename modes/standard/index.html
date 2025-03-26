@@ -20,7 +20,7 @@
         <button class="settings-btn">⚙️ 设置</button>
     </div>
     <div class="desktop-container">
-        <div class="editor-container">
+        <div class="editor-container" id="draft-container">
             <div class="editor-header">
                 <button id="workspace-btn" class="editor-btn">整理</button>
                 <span class="spacer"></span>
@@ -32,10 +32,10 @@
                     </label>
                 </div>
             </div>
-            <textarea id="workspace" placeholder="请输入文本"></textarea>
+            <div data-role="textarea-container"></div>
         </div>
         <button id="markdown-button" class="markdown-btn">generate</button>
-        <div class="editor-container">
+        <div class="editor-container" id="preview-container">
             <div class="editor-header">
                 <div class="toggle-container">
                     <label class="toggle-switch" title="开启/关闭自动渲染功能">
@@ -47,7 +47,7 @@
                 <span class="spacer"></span>
                 <button id="displayspace-btn" class="editor-btn">render</button>
             </div>
-            <textarea id="displayspace" placeholder="请输入文本"></textarea>
+            <div data-role="textarea-container-preview"></div>
             <div id="markdown-preview" class="markdown-preview" contenteditable="true"></div>
         </div>
     </div>

@@ -135,6 +135,26 @@ textarea {
     border-radius: 5px;
 }
 
+[data-role="textarea-container"],
+[data-role="textarea-container-preview"] {
+    flex-grow: 1;
+    width: 100%;
+    display: flex; /* 使内部textarea也能flex */
+}
+
+.draft-textarea,
+.preview-textarea {
+    flex-grow: 1;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    resize: none;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
 h1, p {
     margin: 10px;
 }
