@@ -32,31 +32,6 @@ const RightClickMenu = {
         this.showMenu(x, y, options.selectedText || '');
     },
     
-    // 绑定Markdown预览区的右键菜单
-    bindMarkdownPreviewMenu: function(element) {
-        if (!element) return;
-        
-        element.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            // 记录当前活动元素为预览区对应的文本框
-            this.activeTextarea = document.getElementById('displayspace');
-            
-            // 记录预览区选中的文本
-            const selection = window.getSelection();
-            const selectedText = selection.toString();
-            
-            // 记录光标位置（在原始Markdown中的对应位置）
-            // 这里简化处理，只考虑添加到文本末尾
-            this.cursorPosition = this.activeTextarea.value.length;
-            
-            // 获取点击位置坐标
-            const x = event.clientX;
-            const y = event.clientY;
-            
-            // 显示菜单
-            this.showMenu(x, y, selectedText);
-        });
-    },
 
     bindEvents: function () {
         this.elements.input.addEventListener('compositionstart', () => {
@@ -108,32 +83,6 @@ const RightClickMenu = {
                     await this.generateResponse(inputText, referenceText, currentTextarea);
                 }
             }
-        });
-    },
-
-    // 绑定右键菜单
-    bindRightClickMenu: function(element) {
-        element.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            this.activeTextarea = element; // 记录当前活动的文本框
-        
-            // 检查是否有选中的文本
-            const selectedText = element.value.substring(
-                element.selectionStart, 
-                element.selectionEnd
-            );
-            
-            // 记录光标位置
-            this.cursorPosition = element.selectionStart;
-            // 如果没有选中，则光标设为文本末尾
-            if (this.cursorPosition === undefined || this.cursorPosition === null) {
-                this.cursorPosition = element.value.length;
-            }
-            
-            // 获取点击位置相对于视口的坐标
-            const x = event.clientX;
-            const y = event.clientY;
-            this.showMenu(x, y, selectedText);
         });
     },
 
