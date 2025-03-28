@@ -47,6 +47,7 @@
     <div class="mode-selector" id="mode-selector" style="display: none;">
         <p>请选择使用模式：</p>
         <button id="standard-mode">标准模式</button>
+        <button id="focus-mode">专注模式</button>
     </div>
 
     <script>
@@ -74,6 +75,11 @@
             document.getElementById('standard-mode').addEventListener('click', function() {
                 localStorage.setItem('preferredMode', 'standard');
                 window.location.href = './modes/standard/index.html';
+            });
+            
+            document.getElementById('focus-mode').addEventListener('click', function() {
+                localStorage.setItem('preferredMode', 'focus');
+                window.location.href = './modes/focus/index.html';
             });
         });
     </script>

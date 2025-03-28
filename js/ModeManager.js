@@ -7,7 +7,7 @@
 
 const ModeManager = {
     currentMode: null,
-    availableModes: ['standard'], // 先只支持标准模式，后续添加更多
+    availableModes: ['standard','focus'], // 先只支持标准模式，后续添加更多
     
     /**
      * 初始化模式管理器
