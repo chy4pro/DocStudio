@@ -24,7 +24,9 @@ const Draft = {
         isStreamingContent: false,
         originalContent: '', // 用于内容整理的原始内容备份
         controller: null, // AbortController 用于取消流式请求
-        buttonState: 'ORGANIZE' // 按钮状态: ORGANIZE, STOP, REVERT
+        buttonState: 'ORGANIZE', // 按钮状态: ORGANIZE, STOP, REVERT
+        activeTextarea: null, // 当前活动文本区域引用
+        resizeObserver: null // ResizeObserver实例
     },
 
     // 组件初始化函数
@@ -44,6 +46,9 @@ const Draft = {
         // 绑定内部事件
         this.bindEvents();
         
+        // 初始化ResizeObserver
+        this.initResizeObserver();
+        
         // 订阅外部事件
         this.subscribeToEvents();
         
@@ -59,6 +64,38 @@ const Draft = {
         return this;
     },
     
+    // 初始化ResizeObserver
+    initResizeObserver: function() {
+        // 检查浏览器是否支持ResizeObserver
+        if (typeof ResizeObserver === 'undefined') {
+            console.warn('ResizeObserver not supported in this browser');
+            return;
+        }
+        
+        // 创建ResizeObserver实例
+        this.resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const textarea = entry.target;
+                // 自动调整高度
+                this.adjustTextareaHeight(textarea);
+            }
+        });
+        
+        // 为所有现有textarea添加观察
+        document.querySelectorAll('.draft-textarea').forEach(textarea => {
+            this.resizeObserver.observe(textarea);
+        });
+    },
+    
+    // 调整textarea高度的辅助方法
+    adjustTextareaHeight: function(textarea) {
+        if (!textarea) return;
+        
+        // 自动调整高度
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 5 + 'px';
+    },
+    
     // 订阅外部事件
     subscribeToEvents: function() {
         if (!window.EventSystem) return;
@@ -71,15 +108,23 @@ const Draft = {
         
         // 响应来自右键菜单的内容修改
         EventSystem.subscribe('rightClickMenu:contentInserted', (data) => {
-            if (data && data.targetId === this.elements.textarea.id) {
-                // 右键菜单在workspace中插入了内容，触发保存
-                this.state.isDirty = true;
-                clearTimeout(this.state.saveTimeout);
-                this.state.saveTimeout = setTimeout(() => {
-                    localStorage.setItem('workspaceContent', this.elements.textarea.value);
-                    this.state.content = this.elements.textarea.value;
-                    console.log('来自右键菜单的内容已自动保存');
-                }, 500);
+            if (data && data.targetId) {
+                // 查找对应的便签和索引
+                const docIndex = this.state.documents.findIndex(doc => doc.id === data.targetId);
+                if (docIndex !== -1) {
+                    const textarea = document.getElementById(data.targetId);
+                    if (!textarea) return;
+                    
+                    // 标记为需要保存
+                    this.state.isDirty = true;
+                    clearTimeout(this.state.saveTimeout);
+                    this.state.saveTimeout = setTimeout(() => {
+                        // 更新文档内容
+                        this.state.documents[docIndex].content = textarea.value;
+                        localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
+                        console.log('来自右键菜单的内容已自动保存:', data.targetId);
+                    }, 500);
+                }
             }
         });
     },
@@ -104,30 +149,63 @@ const Draft = {
     createTextArea: function() {
         if (!this.elements.container) return;
         
+        // 清空现有内容
+        this.elements.container.innerHTML = '';
+        
+        // 如果documents为空，添加默认文档
+        if (this.state.documents.length === 0) {
+            this.state.documents.push({
+                id: 'note-' + Date.now(),
+                content: '',
+                title: '新建便签'
+            });
+        }
+        
         // 创建textarea元素
-        console.log(this.state.documents[1])
-        this.state.documents.forEach((draft) => {
+        this.state.documents.forEach((draft, index) => {
             const div = document.createElement('div');
+            div.className = 'draft-note-container';
+            
             const textarea = document.createElement('textarea');
             textarea.id = draft.id;
             textarea.value = draft.content;
             textarea.className = 'draft-textarea';
             textarea.placeholder = 'Please enter content';
+            
             div.appendChild(textarea);
-            this.elements.container.appendChild(div)
-            textarea.style.height = textarea.scrollHeight + 'px';
+            this.elements.container.appendChild(div);
+            
+            // 设置第一个便签为活动便签
+            if (index === 0) {
+                this.state.activeTextarea = textarea;
+                div.classList.add('active-note');
+            }
+            
+            // 初始自适应高度
+            this.adjustTextareaHeight(textarea);
+            
+            // 如果ResizeObserver已初始化，添加观察
+            if (this.resizeObserver) {
+                this.resizeObserver.observe(textarea);
+            }
+            
+            // 为每个textarea添加焦点事件，设置activeTextarea
+            textarea.addEventListener('focus', () => {
+                this.state.activeTextarea = textarea;
+                
+                // 更新视觉样式
+                document.querySelectorAll('.draft-note-container').forEach(container => {
+                    container.classList.remove('active-note');
+                });
+                div.classList.add('active-note');
+                
+                // 当一个便签获得焦点时，删除其他空便签
+                this.deleteEmptyNotes();
+            });
+            
+            // 为每个textarea添加输入事件，处理自动保存
+            textarea.addEventListener('input', (e) => this.handleInput(e));
         });
-        // const textarea = document.createElement('textarea');
-        // textarea.id = this.options.textareaId;  // 使用配置中的ID
-        // textarea.className = 'draft-textarea'; // 添加类名
-        // textarea.placeholder = '请输入文本';
-        
-        // // 添加到锚点容器
-        // this.elements.container.innerHTML = '';  // 清空锚点内容
-        // this.elements.container.appendChild(textarea);
-        
-        // // 保存引用
-        // this.elements.textarea = textarea;
         
         // 绑定右键菜单处理
         this.bindRightClickHandler();
@@ -135,28 +213,36 @@ const Draft = {
     
     // 绑定右键菜单处理
     bindRightClickHandler: function() {
-        if (!this.elements.textarea) return;
+        // 获取所有的textarea元素
+        const textareas = document.querySelectorAll('.draft-textarea');
+        if (!textareas.length) return;
         
-        this.elements.textarea.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            
-            // 获取选中的文本
-            const selectedText = this.elements.textarea.value.substring(
-                this.elements.textarea.selectionStart, 
-                this.elements.textarea.selectionEnd
-            );
-            
-            // 记录光标位置
-            const cursorPosition = this.elements.textarea.selectionStart;
-            
-            // 调用RightClickMenu服务显示菜单
-            if (window.RightClickMenu) {
-                RightClickMenu.showMenuAt(event.clientX, event.clientY, {
-                    activeTextarea: this.elements.textarea,
-                    cursorPosition: cursorPosition,
-                    selectedText: selectedText
-                });
-            }
+        // 为每个textarea添加右键菜单
+        textareas.forEach(textarea => {
+            textarea.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                
+                // 将右键点击的textarea设为活动textarea
+                this.state.activeTextarea = textarea;
+                
+                // 获取选中的文本
+                const selectedText = textarea.value.substring(
+                    textarea.selectionStart, 
+                    textarea.selectionEnd
+                );
+                
+                // 记录光标位置
+                const cursorPosition = textarea.selectionStart;
+                
+                // 调用RightClickMenu服务显示菜单
+                if (window.RightClickMenu) {
+                    RightClickMenu.showMenuAt(event.clientX, event.clientY, {
+                        activeTextarea: textarea,
+                        cursorPosition: cursorPosition,
+                        selectedText: selectedText
+                    });
+                }
+            });
         });
     },
 
@@ -169,9 +255,6 @@ const Draft = {
         const savedContent = localStorage.getItem('workspaceContent');
         if (savedContent !== null) {
             this.state.content = savedContent;
-            // if (this.elements.textarea) {
-            //     this.elements.textarea.value = savedContent;
-            // }
         }
 
         const savedDrafts = JSON.parse(localStorage.getItem('docstudio_documents'));
@@ -192,11 +275,6 @@ const Draft = {
             this.elements.toggleButton.addEventListener('change', (e) => this.handleToggleChange(e));
         }
         
-        // 文本内容变化事件
-        if (this.elements.textarea) {
-            this.elements.textarea.addEventListener('input', (e) => this.handleInput(e));
-        }
-        
         // 整理按钮点击事件
         if (this.elements.organizeButton) {
             this.elements.organizeButton.addEventListener('click', (e) => this.handleOrganizeClick(e));
@@ -212,8 +290,18 @@ const Draft = {
         if (this.state.isWaitingForSuggestion) return this;
         this.state.isWaitingForSuggestion = true;
         
-        const textarea = this.elements.textarea;
+        // 使用当前活动的便签
+        const textarea = this.state.activeTextarea;
         if (!textarea) {
+            this.state.isWaitingForSuggestion = false;
+            return this;
+        }
+        
+        // 查找便签在文档集合中的位置
+        const docId = textarea.id;
+        const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
+        
+        if (docIndex === -1) {
             this.state.isWaitingForSuggestion = false;
             return this;
         }
@@ -286,8 +374,8 @@ const Draft = {
             textarea.value = textarea.value + formattedSuggestion;
             
             // 更新内部状态
-            this.state.content = textarea.value;
-            localStorage.setItem('workspaceContent', textarea.value);
+            this.state.documents[docIndex].content = textarea.value;
+            localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
             
             // 恢复光标位置
             textarea.selectionStart = cursorPosition;
@@ -334,8 +422,15 @@ const Draft = {
 
     // 内容整理相关方法
     organizeContent: async function() {
-        const textarea = this.elements.textarea;
+        // 使用当前活动的便签
+        const textarea = this.state.activeTextarea;
         if (!textarea) return this;
+        
+        // 查找便签在文档集合中的位置
+        const docId = textarea.id;
+        const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
+        
+        if (docIndex === -1) return this;
         
         const content = textarea.value.trim();
         if (!content) {
@@ -455,8 +550,8 @@ const Draft = {
                 }
                 
                 // 自动保存整理后的内容
-                this.state.content = resultText;
-                localStorage.setItem('workspaceContent', resultText);
+                this.state.documents[docIndex].content = resultText;
+                localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
                 
                 // 整理完成后，设置按钮为回退状态
                 this.state.buttonState = 'REVERT';
@@ -517,28 +612,39 @@ const Draft = {
         return this;
     },
 
-    // 公共API方法 - 获取内容
+    // 公共API方法 - 获取活动便签内容
     getContent: function() {
-        if (this.elements.textarea) {
-            return this.elements.textarea.value;
+        if (this.state.activeTextarea) {
+            return this.state.activeTextarea.value;
         }
-        return this.state.content || '';
+        return '';
     },
 
-    // 公共API方法 - 设置内容
+    // 公共API方法 - 设置活动便签内容
     setContent: function(content) {
-        if (this.elements.textarea) {
-            this.elements.textarea.value = content;
-            this.state.content = content;
-            localStorage.setItem('workspaceContent', content);
-            
-            // 发布内容更新事件
-            if (window.EventSystem) {
-                EventSystem.publish('draft:content-updated', {
-                    content: content
-                });
-            }
+        const textarea = this.state.activeTextarea;
+        if (!textarea) return this;
+        
+        // 查找便签在文档集合中的位置
+        const docId = textarea.id;
+        const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
+        if (docIndex === -1) return this;
+        
+        // 更新文本框内容
+        textarea.value = content;
+        
+        // 更新文档集合和localStorage
+        this.state.documents[docIndex].content = content;
+        localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
+        
+        // 发布内容更新事件
+        if (window.EventSystem) {
+            EventSystem.publish('draft:content-updated', {
+                content: content,
+                noteId: docId
+            });
         }
+        
         return this;
     },
     
@@ -568,21 +674,32 @@ const Draft = {
     
     // 处理文本输入事件
     handleInput: function(event) {
-        const textarea = this.elements.textarea;
+        // 用事件目标作为当前活动的textarea
+        const textarea = event.target;
         if (!textarea) return;
+        
+        // 确保这是我们的便签
+        const docId = textarea.id;
+        const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
+        if (docIndex === -1) return;
+        
+        // 设置为活动便签
+        this.state.activeTextarea = textarea;
         
         // 自动保存逻辑
         clearTimeout(this.state.saveTimeout);
         this.state.saveTimeout = setTimeout(() => {
-            localStorage.setItem('workspaceContent', textarea.value);
-            this.state.content = textarea.value;
+            // 更新文档内容
+            this.state.documents[docIndex].content = textarea.value;
+            localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
             this.state.isDirty = false;
-            console.log('内容已自动保存');
+            console.log('便签内容已自动保存:', docId);
             
             // 发布内容更新事件
             if (window.EventSystem) {
                 EventSystem.publish('draft:content-saved', {
-                    content: textarea.value
+                    content: textarea.value,
+                    noteId: docId
                 });
             }
         }, 500); // 500ms防抖，避免频繁保存
@@ -647,13 +764,20 @@ const Draft = {
     
     // 回退到原始内容
     revertContent: function() {
-        if (this.elements.textarea && this.state.originalContent) {
+        const textarea = this.state.activeTextarea;
+        if (textarea && this.state.originalContent) {
+            // 查找便签在文档集合中的位置
+            const docId = textarea.id;
+            const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
+            
+            if (docIndex === -1) return this;
+            
             // 恢复原始内容
-            this.elements.textarea.value = this.state.originalContent;
+            textarea.value = this.state.originalContent;
             
             // 更新状态和localStorage
-            this.state.content = this.state.originalContent;
-            localStorage.setItem('workspaceContent', this.state.originalContent);
+            this.state.documents[docIndex].content = this.state.originalContent;
+            localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
             
             // 重置按钮状态
             this.state.buttonState = 'ORGANIZE';
@@ -666,7 +790,8 @@ const Draft = {
             // 发布内容回退事件
             if (window.EventSystem) {
                 EventSystem.publish('draft:content-reverted', {
-                    content: this.state.originalContent
+                    content: this.state.originalContent,
+                    noteId: docId
                 });
             }
         }
@@ -692,9 +817,10 @@ const Draft = {
     
     // 插入内容到指定位置 - 公共API
     insertContentAt: function(content, position) {
-        if (!this.elements.textarea) return this;
+        const textarea = this.state.activeTextarea;
+        if (!textarea) return this;
         
-        const currentContent = this.elements.textarea.value;
+        const currentContent = textarea.value;
         const pos = (position !== undefined) ? position : currentContent.length;
         
         const newContent = currentContent.substring(0, pos) + content + currentContent.substring(pos);
@@ -703,17 +829,51 @@ const Draft = {
     
     // 插入内容到光标位置 - 公共API
     insertAtCursor: function(content) {
-        if (!this.elements.textarea) return this;
+        const textarea = this.state.activeTextarea;
+        if (!textarea) return this;
         
-        const cursorPos = this.elements.textarea.selectionStart;
+        const cursorPos = textarea.selectionStart;
         return this.insertContentAt(content, cursorPos);
     },
     
-    // 聚焦文本框 - 公共API
+    // 聚焦活动文本框 - 公共API
     focus: function() {
-        if (this.elements.textarea) {
-            this.elements.textarea.focus();
+        if (this.state.activeTextarea) {
+            this.state.activeTextarea.focus();
         }
+        return this;
+    },
+    
+    // 删除空的便签（除了当前活动的便签）
+    deleteEmptyNotes: function() {
+        if (this.state.documents.length <= 1) return this; // 至少保留一个便签
+        
+        const activeId = this.state.activeTextarea ? this.state.activeTextarea.id : null;
+        let hasDeleted = false;
+        
+        // 查找并删除空便签
+        this.state.documents = this.state.documents.filter(doc => {
+            // 如果是活动便签或有内容，则保留
+            const keepNote = (doc.id === activeId || doc.content.trim() !== '');
+            
+            // 如果要删除便签，同时删除其DOM元素
+            if (!keepNote) {
+                const element = document.getElementById(doc.id);
+                if (element && element.parentElement) {
+                    element.parentElement.remove();
+                    hasDeleted = true;
+                }
+            }
+            
+            return keepNote;
+        });
+        
+        // 如果有便签被删除，保存更新后的列表
+        if (hasDeleted) {
+            localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
+            console.log('已删除空便签');
+        }
+        
         return this;
     }
 };
