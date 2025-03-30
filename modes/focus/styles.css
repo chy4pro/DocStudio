@@ -67,12 +67,6 @@ body {
     flex-direction: column;
 }
 
-[data-role="textarea-container"] {
-    flex-grow: 1;
-    width: 100%;
-    display: flex;
-}
-
 .draft-textarea {
     flex-grow: 1;
     width: 100%;

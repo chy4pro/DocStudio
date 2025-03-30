@@ -135,13 +135,6 @@ textarea {
     border-radius: 5px;
 }
 
-[data-role="textarea-container"],
-[data-role="textarea-container-preview"] {
-    flex-grow: 1;
-    width: 100%;
-    display: flex; /* 使内部textarea也能flex */
-}
-
 .draft-textarea,
 .preview-textarea {
     flex-grow: 1;

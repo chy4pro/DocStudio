@@ -2,7 +2,7 @@
 const Draft = {
     // 配置选项
     options: {
-        container: '#draft-container',
+        container: '[data-role="textarea-container-draft"]',
         textareaId: 'workspace',  // 直接使用ID名，不含#前缀
         toggleButton: '#workspace-toggle',
         organizeButton: '#workspace-btn'
@@ -16,6 +16,7 @@ const Draft = {
         aiSuggestionsEnabled: false,
         isDirty: false,
         content: '',
+        documents: [],
         saveTimeout: null,
         suggestTimeout: null,
         isWaitingForSuggestion: false,
@@ -34,11 +35,11 @@ const Draft = {
         // 初始化DOM引用
         this.initElements();
         
-        // 创建文本区域
-        this.createTextArea();
-        
         // 加载内部状态
         this.loadState();
+
+        // 创建文本区域
+        this.createTextArea();
         
         // 绑定内部事件
         this.bindEvents();
@@ -97,30 +98,36 @@ const Draft = {
             console.error('Draft component: Container element not found');
             return;
         }
-        
-        // 查找锚点元素
-        this.elements.anchor = this.elements.container.querySelector('[data-role="textarea-container"]');
-        if (!this.elements.anchor) {
-            console.error('Draft component: Textarea container element not found');
-        }
     },
     
     // 创建textarea元素
     createTextArea: function() {
-        if (!this.elements.anchor) return;
+        if (!this.elements.container) return;
         
         // 创建textarea元素
-        const textarea = document.createElement('textarea');
-        textarea.id = this.options.textareaId;  // 使用配置中的ID
-        textarea.className = 'draft-textarea'; // 添加类名
-        textarea.placeholder = '请输入文本';
+        console.log(this.state.documents[1])
+        this.state.documents.forEach((draft) => {
+            const div = document.createElement('div');
+            const textarea = document.createElement('textarea');
+            textarea.id = draft.id;
+            textarea.value = draft.content;
+            textarea.className = 'draft-textarea';
+            textarea.placeholder = 'Please enter content';
+            div.appendChild(textarea);
+            this.elements.container.appendChild(div)
+            textarea.style.height = textarea.scrollHeight + 'px';
+        });
+        // const textarea = document.createElement('textarea');
+        // textarea.id = this.options.textareaId;  // 使用配置中的ID
+        // textarea.className = 'draft-textarea'; // 添加类名
+        // textarea.placeholder = '请输入文本';
         
-        // 添加到锚点容器
-        this.elements.anchor.innerHTML = '';  // 清空锚点内容
-        this.elements.anchor.appendChild(textarea);
+        // // 添加到锚点容器
+        // this.elements.container.innerHTML = '';  // 清空锚点内容
+        // this.elements.container.appendChild(textarea);
         
-        // 保存引用
-        this.elements.textarea = textarea;
+        // // 保存引用
+        // this.elements.textarea = textarea;
         
         // 绑定右键菜单处理
         this.bindRightClickHandler();
@@ -162,9 +169,14 @@ const Draft = {
         const savedContent = localStorage.getItem('workspaceContent');
         if (savedContent !== null) {
             this.state.content = savedContent;
-            if (this.elements.textarea) {
-                this.elements.textarea.value = savedContent;
-            }
+            // if (this.elements.textarea) {
+            //     this.elements.textarea.value = savedContent;
+            // }
+        }
+
+        const savedDrafts = JSON.parse(localStorage.getItem('docstudio_documents'));
+        if (savedDrafts !== null) {
+            this.state.documents = savedDrafts;
         }
         
         // 设置开关状态

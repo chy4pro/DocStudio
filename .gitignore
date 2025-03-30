@@ -1,1 +1,5 @@
 .DS_Store
+# Cursor editor config files
+.cursor/
+.cursor-settings/
+cursor.json
