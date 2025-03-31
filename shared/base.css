@@ -286,3 +286,33 @@ input:checked + .toggle-slider:before {
     max-width: 100%;
     height: auto;
 }
+
+/* 工作区便签容器与自适应高度实现 */
+.draft-note-container {
+    position: relative;
+    width: 100%;
+}
+
+.draft-pre-mirror {
+    width: 100%;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    visibility: hidden; /* Hide the pre element but keep it in the layout */
+    font-family: inherit; /* Match textarea font */
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.draft-textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    background-color: transparent; /* Make background transparent */
+    z-index: 1; /* Ensure textarea is above the pre element */
+    overflow-y: auto; /* Add scrollbar when content exceeds height */
+}

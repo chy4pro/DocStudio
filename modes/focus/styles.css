@@ -67,16 +67,25 @@ body {
     flex-direction: column;
 }
 
-.draft-textarea {
+/* Focus mode specific styling */
+.draft-note-container {
     flex-grow: 1;
-    width: 100%;
+}
+
+.draft-pre-mirror {
     padding: 20px;
-    box-sizing: border-box;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 200px;
+    border: 1px solid transparent;
+}
+
+.draft-textarea {
+    padding: 20px;
     font-size: 16px;
     line-height: 1.6;
     border: 1px solid #eee;
     border-radius: 5px;
-    resize: none;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
     background-color: #fff;
 }

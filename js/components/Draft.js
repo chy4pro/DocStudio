@@ -26,7 +26,8 @@ const Draft = {
         controller: null, // AbortController 用于取消流式请求
         buttonState: 'ORGANIZE', // 按钮状态: ORGANIZE, STOP, REVERT
         activeTextarea: null, // 当前活动文本区域引用
-        resizeObserver: null // ResizeObserver实例
+        resizeObserver: null, // ResizeObserver实例
+        consecutiveEnters: 0 // 连续回车计数器
     },
 
     // 组件初始化函数
@@ -66,34 +67,13 @@ const Draft = {
     
     // 初始化ResizeObserver
     initResizeObserver: function() {
-        // 检查浏览器是否支持ResizeObserver
-        if (typeof ResizeObserver === 'undefined') {
-            console.warn('ResizeObserver not supported in this browser');
-            return;
-        }
-        
-        // 创建ResizeObserver实例
-        this.resizeObserver = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                const textarea = entry.target;
-                // 自动调整高度
-                this.adjustTextareaHeight(textarea);
-            }
-        });
-        
-        // 为所有现有textarea添加观察
-        document.querySelectorAll('.draft-textarea').forEach(textarea => {
-            this.resizeObserver.observe(textarea);
-        });
+        // No longer needed as we'll use pre elements instead
+        console.log('Using pre elements for height adjustment instead of ResizeObserver');
     },
     
     // 调整textarea高度的辅助方法
     adjustTextareaHeight: function(textarea) {
-        if (!textarea) return;
-        
-        // 自动调整高度
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 5 + 'px';
+        // No longer needed as we'll use pre elements instead
     },
     
     // 订阅外部事件
@@ -166,12 +146,21 @@ const Draft = {
             const div = document.createElement('div');
             div.className = 'draft-note-container';
             
+            // 创建隐藏的pre元素用于撑开高度
+            const pre = document.createElement('pre');
+            pre.className = 'draft-pre-mirror';
+            pre.textContent = draft.content + '\n'; // 添加额外换行确保足够空间
+            
             const textarea = document.createElement('textarea');
             textarea.id = draft.id;
             textarea.value = draft.content;
             textarea.className = 'draft-textarea';
             textarea.placeholder = 'Please enter content';
             
+            // 设置样式，确保textarea与pre完全重叠且高度为100%
+            textarea.style.height = '100%';
+            
+            div.appendChild(pre);
             div.appendChild(textarea);
             this.elements.container.appendChild(div);
             
@@ -179,14 +168,6 @@ const Draft = {
             if (index === 0) {
                 this.state.activeTextarea = textarea;
                 div.classList.add('active-note');
-            }
-            
-            // 初始自适应高度
-            this.adjustTextareaHeight(textarea);
-            
-            // 如果ResizeObserver已初始化，添加观察
-            if (this.resizeObserver) {
-                this.resizeObserver.observe(textarea);
             }
             
             // 为每个textarea添加焦点事件，设置activeTextarea
@@ -205,6 +186,9 @@ const Draft = {
             
             // 为每个textarea添加输入事件，处理自动保存
             textarea.addEventListener('input', (e) => this.handleInput(e));
+            
+            // 添加键盘事件监听
+            textarea.addEventListener('keydown', (e) => this.handleKeyDown(e));
         });
         
         // 绑定右键菜单处理
@@ -297,6 +281,9 @@ const Draft = {
             return this;
         }
         
+        // 获取pre元素
+        const preElement = textarea.parentElement.querySelector('.draft-pre-mirror');
+        
         // 查找便签在文档集合中的位置
         const docId = textarea.id;
         const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
@@ -332,6 +319,11 @@ const Draft = {
         // 添加加载指示器
         this.state.loadingIndicator = "\n\n正在生成AI建议...";
         textarea.value = textarea.value + this.state.loadingIndicator;
+        
+        // 同步更新pre元素
+        if (preElement) {
+            preElement.textContent = textarea.value + '\n';
+        }
         
         try {
             // 发布AI建议请求开始事件
@@ -426,6 +418,9 @@ const Draft = {
         const textarea = this.state.activeTextarea;
         if (!textarea) return this;
         
+        // 获取pre元素
+        const preElement = textarea.parentElement.querySelector('.draft-pre-mirror');
+        
         // 查找便签在文档集合中的位置
         const docId = textarea.id;
         const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
@@ -469,6 +464,11 @@ const Draft = {
             
             // 准备开始流式输出
             textarea.value = "正在整理内容...\n";
+            
+            // 同步更新pre元素
+            if (preElement) {
+                preElement.textContent = textarea.value + '\n';
+            }
             
             // 创建 AbortController 用于可能的取消
             this.state.controller = new AbortController();
@@ -531,6 +531,12 @@ const Draft = {
                                 if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
                                     resultText += data.choices[0].delta.content;
                                     textarea.value = resultText;
+                                    
+                                    // 同步更新pre元素
+                                    if (preElement) {
+                                        preElement.textContent = resultText + '\n';
+                                    }
+                                    
                                     textarea.scrollTop = textarea.scrollHeight; // 自动滚动到底部
                                     
                                     // 发布整理进度事件
@@ -590,6 +596,11 @@ const Draft = {
             if (error.name !== 'AbortError') { // 只有在非用户中断的错误情况下显示错误信息
                 textarea.value = `整理内容时出错: ${error.message || '未知错误'}\n\n原始内容:\n${this.state.originalContent}`;
                 
+                // 同步更新pre元素
+                if (preElement) {
+                    preElement.textContent = textarea.value + '\n';
+                }
+                
                 // 出错时，设置按钮为回退状态
                 this.state.buttonState = 'REVERT';
                 if (this.elements.organizeButton) {
@@ -632,6 +643,12 @@ const Draft = {
         
         // 更新文本框内容
         textarea.value = content;
+        
+        // 同步更新pre元素
+        const preElement = textarea.parentElement.querySelector('.draft-pre-mirror');
+        if (preElement) {
+            preElement.textContent = content + '\n';
+        }
         
         // 更新文档集合和localStorage
         this.state.documents[docIndex].content = content;
@@ -686,6 +703,12 @@ const Draft = {
         // 设置为活动便签
         this.state.activeTextarea = textarea;
         
+        // 更新对应的pre元素内容以调整高度
+        const preElement = textarea.parentElement.querySelector('.draft-pre-mirror');
+        if (preElement) {
+            preElement.textContent = textarea.value + '\n'; // 额外添加换行确保足够空间
+        }
+        
         // 自动保存逻辑
         clearTimeout(this.state.saveTimeout);
         this.state.saveTimeout = setTimeout(() => {
@@ -715,6 +738,11 @@ const Draft = {
             if (this.state.loadingIndicator) {
                 textarea.value = textarea.value.replace(this.state.loadingIndicator, '');
                 this.state.loadingIndicator = null;
+                
+                // 同步更新pre元素内容
+                if (preElement) {
+                    preElement.textContent = textarea.value + '\n';
+                }
             }
             
             // 重置AI建议等待状态
@@ -875,6 +903,208 @@ const Draft = {
         }
         
         return this;
+    },
+
+    // 处理键盘事件
+    handleKeyDown: function(event) {
+        const textarea = event.target;
+        if (!textarea) return;
+        
+        // 查找对应便签
+        const docId = textarea.id;
+        const docIndex = this.state.documents.findIndex(doc => doc.id === docId);
+        if (docIndex === -1) return;
+        
+        // 检测回车键
+        if (event.key === 'Enter') {
+            this.state.consecutiveEnters++;
+            console.log("Enter:"+this.state.consecutiveEnters);
+            
+            // 连续3次回车触发拆分
+            if (this.state.consecutiveEnters >= 3) {
+                event.preventDefault(); // 阻止第三次回车的默认行为
+                this.splitDocument(textarea, docIndex);
+                this.state.consecutiveEnters = 0; // 重置计数器
+            }
+        } else {
+            // 不是回车键，重置计数
+            this.state.consecutiveEnters = 0;
+        }
+    },
+    
+    // 拆分文档方法
+    splitDocument: function(textarea, docIndex) {
+        // 获取光标位置
+        const cursorPosition = textarea.selectionStart;
+        const content = textarea.value;
+        
+        // 获取光标前后的内容
+        let contentBefore = content.substring(0, cursorPosition);
+        let contentAfter = content.substring(cursorPosition);
+        
+        // 删除多余的回车 - 最多保留一个回车作为段落分隔
+        // contentBefore = contentBefore.replace(/\n{2,}$/, '\n');
+        
+        // 查找当前文档在DOM中的位置
+        const currentNoteContainer = textarea.parentElement;
+        const parentContainer = currentNoteContainer.parentElement;
+        const noteIndex = Array.from(parentContainer.children).indexOf(currentNoteContainer);
+        
+        // 情况1: 光标前后都有内容 - 拆分为两个文档
+        if (contentBefore.trim() && contentAfter.trim()) {
+            // 处理前半部分末尾的连续回车，最多保留一个
+            contentBefore = contentBefore.replace(/\n{2,}$/, '\n');
+            
+            // 处理后半部分开头的连续回车，全部删除
+            contentAfter = contentAfter.replace(/^\n+/, '');
+            
+            // 更新当前文档内容为光标前的内容
+            textarea.value = contentBefore;
+            this.state.documents[docIndex].content = contentBefore;
+            
+            // 调整当前textarea高度
+            this.adjustTextareaHeight(textarea);
+            
+            // 创建新文档包含光标后的内容
+            const newDocId = 'note-' + Date.now();
+            const newDoc = {
+                id: newDocId,
+                content: contentAfter,
+                title: '新建便签'
+            };
+            
+            // 在当前文档后插入新文档
+            this.state.documents.splice(docIndex + 1, 0, newDoc);
+            
+            // 创建并插入新的DOM元素
+            this.createNoteElement(newDoc, noteIndex + 1);
+        } 
+        // 情况2: 光标前没有内容 - 在当前文档前创建新文档
+        else if (!contentBefore.trim() && contentAfter.trim()) {
+            // 删除后半部分开头的连续回车
+            contentAfter = contentAfter.replace(/^\n+/, '');
+            
+            // 更新当前文档内容为处理后的文本
+            textarea.value = contentAfter;
+            this.state.documents[docIndex].content = contentAfter;
+            
+            // 调整当前textarea高度
+            this.adjustTextareaHeight(textarea);
+            
+            const newDocId = 'note-' + Date.now();
+            const newDoc = {
+                id: newDocId,
+                content: '',
+                title: '新建便签'
+            };
+            
+            // 在当前文档前插入新文档
+            this.state.documents.splice(docIndex, 0, newDoc);
+            
+            // 创建并插入新的DOM元素
+            this.createNoteElement(newDoc, noteIndex);
+        }
+        // 情况3: 光标后没有内容 - 在当前文档后创建新文档
+        else if (contentBefore.trim() && !contentAfter.trim()) {
+            // 删除末尾多余的回车，全部删除
+            const trimmedContent = contentBefore.replace(/\n+$/, '');
+            textarea.value = trimmedContent;
+            this.state.documents[docIndex].content = trimmedContent;
+            
+            // 调整当前textarea高度
+            this.adjustTextareaHeight(textarea);
+            
+            const newDocId = 'note-' + Date.now();
+            const newDoc = {
+                id: newDocId,
+                content: '',
+                title: '新建便签'
+            };
+            
+            // 在当前文档后插入新文档
+            this.state.documents.splice(docIndex + 1, 0, newDoc);
+            
+            // 创建并插入新的DOM元素
+            this.createNoteElement(newDoc, noteIndex + 1);
+        }
+        
+        // 保存更新后的文档数组
+        localStorage.setItem('docstudio_documents', JSON.stringify(this.state.documents));
+        
+        // 发布文档拆分事件
+        if (window.EventSystem) {
+            EventSystem.publish('draft:document-split', {
+                sourceDocId: docIndex,
+                documents: this.state.documents
+            });
+        }
+    },
+    
+    // 在指定位置创建并插入便签
+    createNoteElement: function(docData, insertIndex) {
+        const container = this.elements.container;
+        
+        // 创建新便签容器和textarea
+        const div = document.createElement('div');
+        div.className = 'draft-note-container';
+        
+        // 创建隐藏的pre元素用于撑开高度
+        const pre = document.createElement('pre');
+        pre.className = 'draft-pre-mirror';
+        pre.textContent = docData.content + '\n'; // 添加额外换行确保足够空间
+        
+        const textarea = document.createElement('textarea');
+        textarea.id = docData.id;
+        textarea.value = docData.content;
+        textarea.className = 'draft-textarea';
+        textarea.placeholder = 'Please enter content';
+        
+        // 设置样式，确保textarea高度为100%
+        textarea.style.height = '100%';
+        
+        div.appendChild(pre);
+        div.appendChild(textarea);
+        
+        // 获取所有现有便签
+        const notes = container.querySelectorAll('.draft-note-container');
+        
+        // 在指定位置插入
+        if (insertIndex < notes.length) {
+            container.insertBefore(div, notes[insertIndex]);
+        } else {
+            container.appendChild(div);
+        }
+        
+        // 设置为活动便签
+        this.state.activeTextarea = textarea;
+        
+        // 更新视觉样式
+        document.querySelectorAll('.draft-note-container').forEach(container => {
+            container.classList.remove('active-note');
+        });
+        div.classList.add('active-note');
+        
+        // 添加事件监听
+        textarea.addEventListener('focus', () => {
+            this.state.activeTextarea = textarea;
+            
+            // 更新视觉样式
+            document.querySelectorAll('.draft-note-container').forEach(container => {
+                container.classList.remove('active-note');
+            });
+            div.classList.add('active-note');
+            
+            // 当一个便签获得焦点时，删除其他空便签
+            this.deleteEmptyNotes();
+        });
+        
+        textarea.addEventListener('input', (e) => this.handleInput(e));
+        textarea.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        
+        // 聚焦新便签
+        textarea.focus();
+        
+        return textarea;
     }
 };
 

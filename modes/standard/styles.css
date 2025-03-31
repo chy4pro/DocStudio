@@ -135,7 +135,28 @@ textarea {
     border-radius: 5px;
 }
 
-.draft-textarea,
+/* Mode-specific styling for draft elements */
+.draft-note-container {
+    margin-bottom: 15px;
+}
+
+.draft-pre-mirror {
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    min-height: 100px; /* Standard模式的最小高度 */
+}
+
+.draft-textarea {
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 .preview-textarea {
     flex-grow: 1;
     width: 100%;

@@ -58,11 +58,11 @@ This is a completely serverless application—all API keys and content are store
 - ✅ HTML preview
 - ✅ Markdown preview with real-time editing
 - ✅ Component-based architecture
+- ✅ Focus mode
+- ✅ Note-based editing (sticky notes for easier draft processing)
 
 #### Future Features
 - 🔄 Multi-language support
-- 🔄 Focus mode
-- 🔄 Note mode (for easier draft processing)
 - 🔄 In-line AI text insertions
 - 🔄 Text selection editing
 - 🔄 Generated content review and correction
@@ -140,11 +140,11 @@ DocStudio 是一款基于人工智能的文档编辑和格式化工具，帮助�
 - ✅ HTML 预览
 - ✅ Markdown实时预览与编辑
 - ✅ 组件化架构
+- ✅ 专注模式
+- ✅ 便签式编辑(让草稿处理更方便)
 
 #### 未来功能
 - 🔄 多语言支持
-- 🔄 专注模式
-- 🔄 分段便签模式(让草稿处理更方便)
 - 🔄 AI文中插入式输出
 - 🔄 选中修改
 - 🔄 生成内容批改
